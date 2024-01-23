@@ -1,5 +1,5 @@
 TICK=INFY
-
+ 
 echo
 echo
 echo '01 .... load home page nseindia.com'

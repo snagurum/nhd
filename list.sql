@@ -1,4 +1,4 @@
--- getting ticker List ------------
+-- getting ticker List ------------ 
 
 insert into load_tickers(sysmbol, name, series, date_of_listing, paid_up_value, market_lot, isin, face_value) values('SYMBOL', 'NAME OF COMPANY',' SERIES',' DATE OF LISTING',' PAID UP VALUE', ' MARKET LOT,', ' ISIN NUMBER', ' FACE VALUE');
 insert into load_tickers(sysmbol, name, series, date_of_listing, paid_up_value, market_lot, isin, face_value) values('20MICRONS', '20 Microns Limited','EQ','06-OCT-2008','5', '1,', 'INE144J01027', '5');

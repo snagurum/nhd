@@ -16,4 +16,4 @@ create table load_tickers(
     market_lot       varchar(20),
     isin             varchar(20),
     face_value       varchar(20)
-)
+) 

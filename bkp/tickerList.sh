@@ -2,7 +2,7 @@
 #Creates a new variable with a value of "Hello World"
 learningbash="https://www.nseindia.com/api/historical/cm/equity?symbol=infy&series=[%22EQ%22]&from=14-01-2023&to=14-01-2024"
 echo $learningbash
-
+ 
 
 echo '--------------------------------------'
 curl -I  https://www.nseindia.com   \

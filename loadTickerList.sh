@@ -1,5 +1,5 @@
 #! /bin/bash
-
+ 
 echo '-- getting ticker List ------------'
 echo 
 
