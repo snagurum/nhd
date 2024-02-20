@@ -1,0 +1,1 @@
+mysql -s -u $mysql_user -h $mysql_host -D $mysql_db < updateStock.sql
