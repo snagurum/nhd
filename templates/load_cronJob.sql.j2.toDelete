@@ -1,0 +1,5 @@
+truncate table nse.load_cronjobs;
+{% set tempVar="insert into nse.load_cronjobs(name, type, cron_exp, job, total_loads, pending_loads, status ) values(" %}
+{% for item in  var_pending_loads.query_result  %}
+{{tempVar}} '{{item.name}}','{{item.type}}','{{item.cron_exp}}','{{item.job}}','{{item.total_loads}}','{{item.pending_loads}}','{{item.status}}');
+{% endfor %}

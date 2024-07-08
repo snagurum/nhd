@@ -1,0 +1,85 @@
+---
+- name: "NSE Home Page({{tsymbol}})"
+  ansible.builtin.uri:
+     url: "{{ nse_url }}"
+     method: GET
+     headers:
+        User-agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0"
+        Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8"
+        Accept-Language: "en-US,en;q=0.5"
+        Accept-Encoding: "gzip, deflate, br"
+     return_content: true
+  register: homePage
+
+- name: "Print NSE Home Page({{tsymbol}})"
+  ansible.builtin.debug:
+     msg: "{{ homePage.cookies_string }}"
+  when: debug
+
+- name: "NSE Lookup Company Page({{tsymbol}})"
+  ansible.builtin.uri:
+     url: "{{ nse_url }}/get-quotes/equity?symbol={{tsymbol }}"
+     method: GET
+#     return_content: true
+     headers:
+        User-agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0"
+        Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8"
+        Accept-Language: "en-US,en;q=0.5"
+        Referer: "{{ nse_url }}/"
+        Cookie: "{{ homePage.cookies_string }}"
+        Accept-Encoding: "gzip, deflate, br"
+#        Accept-Encoding: "*"
+  register: lookupPage
+
+- name: "Print NSE Lookup Company Page({{tsymbol}})"
+  ansible.builtin.debug:
+     msg: "{{ lookupPage }}"
+  when: debug
+
+- name: "NSE Company Info({{tsymbol}})"
+  ansible.builtin.uri:
+     url: "{{ nse_url }}/api/quote-equity?symbol={{tsymbol }}"
+     method: GET
+     return_content: true
+     headers:
+        User-agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0"
+        Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8"
+        Accept-Language: "en-US,en;q=0.5"
+        Referer: "{{ nse_url }}/"
+        Cookie: "{{ homePage.cookies_string }};{{ lookupPage.cookies_string }}"
+        Accept-Encoding: "*"
+  register: companyPage
+
+- name: "Print NSE Company Info({{tsymbol}})"
+  ansible.builtin.debug:
+     msg: "{{ companyPage }}"
+  when: debug 
+
+- name: "Print cookie({{tsymbol}})"
+  ansible.builtin.debug:
+     msg: "{{homePage.cookies_string}};{{lookupPage.cookies_string}};{{ companyPage.cookies_string }}"
+  when: debug
+
+- name: "NSE Company Trade Info({{tsymbol}})"
+  ansible.builtin.uri:
+     url: "{{ nse_url }}/api/quote-equity?symbol={{tsymbol }}&section=trade_info"
+     method: GET
+     return_content: true
+     headers:
+        User-agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0"
+        Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8"
+        Accept-Language: "en-US,en;q=0.5"
+        Referer: "{{ nse_url }}/get-quotes/equity?symbol={{tsymbol }}"
+        Cookie: "{{homePage.cookies_string}};{{lookupPage.cookies_string}};{{ companyPage.cookies_string }}"
+        Accept-Encoding: "*"
+  register: companyTradePage
+
+- name: "Print NSE Company Trade Info({{tsymbol}})"
+  ansible.builtin.debug:
+     msg: "{{ companyTradePage }}"
+  when: debug
+
+- name: "Print NSE Company Trade Info({{tsymbol}})"
+  ansible.builtin.debug:
+     msg: "{{ companyPage.json }}-------------{{companyTradePage.json}}"
+#  when: debug

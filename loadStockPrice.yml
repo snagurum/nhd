@@ -1,0 +1,51 @@
+---
+  - name: NSE datadump
+    hosts: localhost
+    gather_facts: no
+    vars_files:
+        - secrets.yml
+    vars:
+        - debug: false
+        - job_name: "loadStockPrice.yml"
+        - query: "select lc.ticker, ''||lc.start_date start_date, ''||lc.end_date end_date from nse.load_bulk_stock_dates lc where is_loaded=false"
+
+    tasks:
+        - name: "start audit log"
+          ansible.builtin.include_tasks:
+             file: "suppl/common_audit.yml"
+          vars:
+             - condition: "start"
+
+        - name: "create query for lifecycle record"
+          ansible.builtin.set_fact:
+             query:          "{{ query }} and to_char(start_date,'YYYYMMDD') like '%{{year}}%'"
+          when: year is defined
+
+        - name: "DB: Get Stock bulk load dates"
+          community.postgresql.postgresql_query:
+             db:          "{{ db.database }}"
+             login_host:  "{{ db.hostname }}"
+             login_user:  "{{ db.username }}"
+             login_password: "{{ db.pwd }}"
+             query: "{{query}};"
+          register: var_lc_stock_details
+
+#        - name: "Loading table load_stock_details"
+#          ansible.builtin.include_tasks:
+#             file: loadStockPrice_supplement.yml
+#          vars:
+#             start_date: "{{ item.start_date[8:10]+'-'+item.start_date[5:7]+'-'+item.start_date[0:4]  }}"
+#             end_date:   "{{ item.end_date[8:10]  +'-'+item.end_date[5:7]  +'-'+item.end_date[0:4] }}"
+#             ticker: "{{ item.ticker }}"
+#             tsymbol: "{{ item.ticker }}"
+#             nse_url: "{{ nse.url }}"
+##          async: 100
+##          poll: 0
+#          loop: "{{ var_lc_stock_details.query_result }}"
+##          when: debug
+
+        - name: "stop audit log"
+          ansible.builtin.include_tasks:
+             file: "suppl/common_audit.yml"
+          vars:
+             - condition: "stop"

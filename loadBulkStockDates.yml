@@ -1,0 +1,70 @@
+---
+  - name: "NSE: Load Bulk stock load-dates"
+    hosts: localhost
+    gather_facts: no
+    vars_files:
+        - secrets.yml
+    vars:
+        - debug: false
+        - job_name: "loadBulkStockDates.yml"
+
+    tasks:
+
+        - name: "start audit log"
+          ansible.builtin.include_tasks:
+             file: "suppl/common_audit.yml"
+          vars:
+             - condition: "start"
+
+        - name: "DB: create insert script for LOAD_BULK_STOCK_DATES tables"
+          community.postgresql.postgresql_query:
+             db:          "{{ db.database }}"
+             login_host:  "{{ db.hostname }}"
+             login_user:  "{{ db.username }}"
+             login_password: "{{ db.pwd }}"
+             query: |
+                select aa.ticker, ''||b.start_date start_date, ''||b.end_date end_date
+                   from
+                      (select a.ticker, max(a.start_date) start_date from 
+                          ( select s.ticker, s.date_of_listing start_date from nse.stocks as s 
+                             union 
+                            select ls.ticker, max(ls.end_date)+ INTERVAL '1 year' - INTERVAL '1 day' start_date 
+                             from nse.load_bulk_stock_dates ls group by ls.ticker 
+                          ) a group by a.ticker ) aa ,
+                      nse.bulk_load_date b
+                   where
+                      date_trunc('year',aa.start_date)<=b.start_date order by 1;
+          register: var_lc_stock_details
+
+        - name: "Print LOAD_BULK_STOCK_DATES insert query count"
+          ansible.builtin.debug:
+             msg: "{{ var_lc_stock_details.rowcount }}"
+          when: debug
+
+        - name: "Create bulk_stock_dates.sql file"
+          ansible.builtin.template:
+             src: "load_bulk_stock_dates.sql.j2"
+             dest: "{{directory.output}}/load_bulk_stock_dates.sql"
+          when: var_lc_stock_details.rowcount  > 0
+
+        - name: "DB: load LOAD_BULK_STOCK_DATES tables"
+          community.postgresql.postgresql_script:
+             db:          "{{ db.database }}"
+             login_host:  "{{ db.hostname }}"
+             login_user:  "{{ db.username }}"
+             login_password: "{{ db.pwd }}"
+             path: "{{directory.output}}/load_bulk_stock_dates.sql"
+          register: output1
+          when: var_lc_stock_details.rowcount > 0
+
+        - name: "Print LOAD_BULK_STOCK_DATES insert result"
+          ansible.builtin.debug:
+             msg: "{{ output1.rowcount }}"
+          when: var_lc_stock_details.rowcount > 0
+
+
+        - name: "stop audit log"
+          ansible.builtin.include_tasks:
+             file: "suppl/common_audit.yml"
+          vars:
+             - condition: "stop"

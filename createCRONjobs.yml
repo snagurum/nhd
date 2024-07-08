@@ -1,0 +1,130 @@
+---
+  - name: Create CRON jobs
+    hosts: localhost
+    gather_facts: no
+    vars_files:
+        - secrets.yml
+    vars:
+        - debug: false
+        - job_name: "createCRONjobs.yml"
+        - schema: "nse"
+        - query0: "truncate table nse.load_cronjobs;"
+        - insert_query: |
+                insert into nse.cronjobs(
+                      name             ,type             ,cron_exp         ,job              ,
+                      total_loads      ,pending_loads    ,status           ,crd_by           ,upd_by        )
+                select
+                      a.name             ,a.type             ,a.cron_exp         ,a.job              ,
+                      a.total_loads      ,a.pending_loads    ,a.status     ,'admin'          ,'admin'      from nse.load_cronjobs a
+                on conflict(name) do update
+                     set type = EXCLUDED.type,
+                     job=EXCLUDED.job,
+                     total_loads=EXCLUDED.total_loads ,
+                     pending_loads=EXCLUDED.pending_loads,
+                     status=EXCLUDED.status             
+        - insert_query_builder: |
+                select
+                      'in_sert1 into n_s_e1.load_cronjobs(name, type, cron_exp, job, total_loads,pending_loads, status) values(''load_stock_price_bulk_'||k.year
+                      || ''',''bulk'''
+                      || ',''3'''
+                      || ', ''{{directory.scripts}}/run_load_stock_price_bulk_' || k.year||'.sh'''
+                      || ',''' ||k.total || ''''
+                      || ',''' ||k.pending || ''''
+                      || ',''' ||k.status || ''''||')' query
+                   from (
+                      select
+                            a.year,
+                            a.total total,
+                            ( case when b.completed is null then 0 else b.completed end) completed,
+                            ( case when b.completed is null then a.total else (a.total-b.completed) end) pending,
+                            ( case when b.completed is null then 'present' when  (a.total-b.completed = 0) then 'absent' else 'present' end) status
+                         from
+                            (
+                               select
+                                     to_char(start_date,'YYYY') as YEAR,
+                                     count(*) total
+                                  from
+                                     nse.load_bulk_stock_dates  group by 1
+                            ) a left outer join
+                            (
+                               select
+                                     to_char(start_date,'YYYY') as YEAR,
+                                     count(*) completed
+                                  from
+                                     nse.load_bulk_stock_dates  where is_loaded is true group by 1
+                            ) b  on b.YEAR = a.YEAR
+                   ) k
+
+    tasks:
+
+        - name: "start audit log"
+          ansible.builtin.include_tasks:
+             file: "suppl/common_audit.yml"
+          vars:
+             - condition: "start"
+
+        - name: "print-id"
+          ansible.builtin.debug:
+             msg: "job_id ===  {{job_id}}"
+
+        - name: "DB: Get loaded stock dates from load_bulk_stock_dates tables"
+          community.postgresql.postgresql_query:
+             db:          "{{ db.database }}"
+             login_host:  "{{ db.hostname }}"
+             login_user:  "{{ db.username }}"
+             login_password: "{{ db.pwd }}"
+             query: "{{ insert_query_builder }}"
+          register: var_pending_loads
+
+        - name: "create varaible query"
+          ansible.builtin.set_fact:
+             select_query: "{{query0}}{{ var_pending_loads.query_result|map(attribute='query')|join(';')|regex_replace('in_sert1','insert')|regex_replace('n_s_e1','nse')|regex_replace('\", \"','') }};"
+
+        - name: "Print query"
+          ansible.builtin.debug:
+             msg: "query = {{ select_query }}"
+          when: debug
+
+        - name: "DB: load Cronjob temp table"
+          community.postgresql.postgresql_query:
+             db:          "{{ db.database }}"
+             login_host:  "{{ db.hostname }}"
+             login_user:  "{{ db.username }}"
+             login_password: "{{ db.pwd }}"
+             query: "{{ select_query }}"
+
+        - name: "DB: update Cronjob table"
+          community.postgresql.postgresql_query:
+             db:          "{{ db.database }}"
+             login_host:  "{{ db.hostname }}"
+             login_user:  "{{ db.username }}"
+             login_password: "{{ db.pwd }}"
+             query: "{{ insert_query }}"
+
+        - name: "DB: update Cronjob table"
+          community.postgresql.postgresql_query:
+             db:          "{{ db.database }}"
+             login_host:  "{{ db.hostname }}"
+             login_user:  "{{ db.username }}"
+             login_password: "{{ db.pwd }}"
+             query: "select name, type, cron_exp, job, total_loads, pending_loads, status from nse.cronjobs;"
+          register: _cronJobs
+
+        - name: "create Cronjob file"
+          ansible.builtin.template:
+             src: "{{ directory.templates }}/cronJob.sh.j2"
+             dest: "{{ directory.scripts }}/run_{{item.name}}.sh"
+             mode: 0700
+          loop: "{{_cronJobs.query_result|list}}"
+          when: '"present"=="{{item.status}}"'
+#          when: '{{item.status}}=="present"'
+
+        - name: "Update & List CRON jobs"
+          ansible.builtin.include_tasks:
+             file: suppl/common_list_cronjob.yml
+
+        - name: "stop audit log"
+          ansible.builtin.include_tasks:
+             file: "suppl/common_audit.yml"
+          vars:
+             - condition: "stop"

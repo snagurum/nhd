@@ -1,0 +1,4 @@
+cd {{app_root}}
+job_id=$(date  "+%Y%m%d_%H%M%S")
+ansible-playbook {{ app_root }}/createCRONjobs.yml -e "job_id=$job_id">> {{directory.logs}}/createCRONjobs.yml_$job_id.lst  2>&1
+
