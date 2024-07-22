@@ -1,0 +1,3 @@
+cd {{app_root}}
+ansible-playbook {{ app_root }}/loadBulkStockDates.yml  >> {{directory.logs}}/loadBulkStockDates_$job_id.lst  2>&1
+

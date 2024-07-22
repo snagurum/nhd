@@ -1,0 +1,3 @@
+cd {{app_root}}
+ansible-playbook --vault-password-file .pwd {{app_root}}/loadStockPrice.yml -e 'year={{item.name[-4:]}}' >>{{directory.logs}}/{{item.name}}.lst 2>&1
+

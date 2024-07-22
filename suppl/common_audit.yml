@@ -1,0 +1,20 @@
+---
+
+- name: "DB : start audit log entry {{job_name}}"
+  community.postgresql.postgresql_query:
+     db:          "{{ db.database }}"
+     login_host:  "{{ db.hostname }}"
+     login_user:  "{{ db.username }}"
+     login_password: "{{ db.pwd }}"
+     query: "insert into nse.audit(job_id, job_name, start_date)values('{{job_id}}', '{{job_name}}', current_timestamp);"
+  when: condition == "start"
+
+- name: "DB: close audit log entry {{job_name}}"
+  community.postgresql.postgresql_query:
+     db:          "{{ db.database }}"
+     login_host:  "{{ db.hostname }}"
+     login_user:  "{{ db.username }}"
+     login_password: "{{ db.pwd }}"
+     query: "update nse.audit set end_date = current_timestamp where job_id = '{{job_id}}' and job_name = '{{job_name}}';"
+  when: condition == "stop"
+
