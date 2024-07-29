@@ -1,0 +1,31 @@
+---
+
+   - name: load tickers
+     hosts: localhost
+     roles:
+       - ticker
+     tags: ticker
+
+   - name: load bulkDates
+     hosts: localhost
+     roles:
+       - bulkDates
+     tags: bulkDates
+
+   - name: load bulkStockPrice
+     hosts: localhost
+     roles:
+       - bulkStockPrices
+     tags: bulkStockPrices
+
+   - name: load cronJobs
+     hosts: localhost
+     roles:
+       - cronjobs
+     tags: cronjobs
+
+   - name: load dailyStockPrice
+     hosts: localhost
+     roles:
+       - dailyStockPrice
+     tags: dailyStockPrice

@@ -1,0 +1,63 @@
+---
+
+# tasks file for roles/cronjobs
+
+  - name: "initialize job_id"
+    ansible.builtin.set_fact:
+        job_id: "{{ lookup('pipe', 'date  \"+%Y%m%d_%H%M%S\"') }}"
+        job_name: "{{ cronjobs.job_name }}"
+        debug: "{{ cronjobs.debug }}"
+
+  - name: "start audit log"
+    ansible.builtin.include_tasks:
+        file: "suppl/common_audit.yml"
+    vars:
+        - condition: "start"
+
+  - name: "DB: update Cronjob table"
+    community.postgresql.postgresql_query:
+         db:          "{{ db.database }}"
+         login_host:  "{{ db.hostname }}"
+         login_user:  "{{ db.username }}"
+         login_password: "{{ db.pwd }}"
+         query: "{{ cronjobs.update_cronjobs }}"
+
+  - name: "load persistant cron jobs"
+    community.postgresql.postgresql_query:
+        db:          "{{ db.database }}"
+        login_host:  "{{ db.hostname }}"
+        login_user:  "{{ db.username }}"
+        login_password: "{{ db.pwd }}"
+        query: "{{ insertQuery_persistent_crons }}"
+    loop: "{{ cronjobs.persistent_crons }}"
+
+  - name: "DB: update Cronjob table"
+    community.postgresql.postgresql_query:
+        db:          "{{ db.database }}"
+        login_host:  "{{ db.hostname }}"
+        login_user:  "{{ db.username }}"
+        login_password: "{{ db.pwd }}"
+        query: "select name, case when type = 'PERSISTANT' then 'run_'||name||'.sh.j2' else 'cronJob.sh.j2' end src, cron_exp, job, total_loads, pending_loads, status from nse.cronjobs;"
+    register: _cronJobs
+
+  - name: "Print query result"
+    ansible.builtin.debug:
+        msg: "query = {{ _cronJobs }}"
+
+  - name: "create Cronjob file"
+    ansible.builtin.template:
+        src: "{{ item.src }}"
+        dest: "{{ app_scripts_fldr }}/run_{{item.name}}.sh"
+        mode: 0700
+    loop: "{{_cronJobs.query_result|list}}"
+    when: '"present"=="{{item.status}}"'
+
+  - name: "Update & List CRON jobs"
+    ansible.builtin.include_tasks:
+        file: suppl/common_list_cronjob.yml
+
+  - name: "stop audit log"
+    ansible.builtin.include_tasks:
+        file: "suppl/common_audit.yml"
+    vars:
+        - condition: "stop"

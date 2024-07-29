@@ -117,11 +117,12 @@ create table nse.cronjobs(
     upd_by           varchar(20)
 );
 
-insert into nse.bulk_load_date(start_date, end_date)values('01-Jan-1993','31-Dec-1993');
-insert into nse.bulk_load_date(start_date, end_date)values('01-Jan-1994','31-Dec-1994');
-insert into nse.bulk_load_date(start_date, end_date)values('01-Jan-1995','31-Dec-1995');
+-- insert into nse.bulk_load_date(start_date, end_date)values('01-Jan-1993','31-Dec-1993');
+-- insert into nse.bulk_load_date(start_date, end_date)values('01-Jan-1994','31-Dec-1994');
+-- insert into nse.bulk_load_date(start_date, end_date)values('01-Jan-1995','31-Dec-1995');
 
 insert into nse.bulk_load_date(start_date, end_date)values('01-Jan-1996','31-Dec-1996');
+
 insert into nse.bulk_load_date(start_date, end_date)values('01-Jan-1997','31-Dec-1997');
 insert into nse.bulk_load_date(start_date, end_date)values('01-Jan-1998','31-Dec-1998');
 insert into nse.bulk_load_date(start_date, end_date)values('01-Jan-1999','31-Dec-1999');
@@ -131,21 +132,22 @@ insert into nse.bulk_load_date(start_date, end_date)values('01-Jan-2001','31-Dec
 insert into nse.bulk_load_date(start_date, end_date)values('01-Jan-2002','31-Dec-2002');
 insert into nse.bulk_load_date(start_date, end_date)values('01-Jan-2003','31-Dec-2003');
 insert into nse.bulk_load_date(start_date, end_date)values('01-Jan-2004','31-Dec-2004');
-insert into nse.bulk_load_date(start_date, end_date)values('01-Jan-2005','31-Dec-2005');
 
+insert into nse.bulk_load_date(start_date, end_date)values('01-Jan-2005','31-Dec-2005');
 insert into nse.bulk_load_date(start_date, end_date)values('01-Jan-2006','31-Dec-2006');
 insert into nse.bulk_load_date(start_date, end_date)values('01-Jan-2007','31-Dec-2007');
 insert into nse.bulk_load_date(start_date, end_date)values('01-Jan-2008','31-Dec-2008');
+
 insert into nse.bulk_load_date(start_date, end_date)values('01-Jan-2009','31-Dec-2009');
 insert into nse.bulk_load_date(start_date, end_date)values('01-Jan-2010','31-Dec-2010');
-
 insert into nse.bulk_load_date(start_date, end_date)values('01-Jan-2011','31-Dec-2011');
 insert into nse.bulk_load_date(start_date, end_date)values('01-Jan-2012','31-Dec-2012');
+
 insert into nse.bulk_load_date(start_date, end_date)values('01-Jan-2013','31-Dec-2013');
 insert into nse.bulk_load_date(start_date, end_date)values('01-Jan-2014','31-Dec-2014');
 insert into nse.bulk_load_date(start_date, end_date)values('01-Jan-2015','31-Dec-2015');
-
 insert into nse.bulk_load_date(start_date, end_date)values('01-Jan-2016','31-Dec-2016');
+
 insert into nse.bulk_load_date(start_date, end_date)values('01-Jan-2017','31-Dec-2017');
 insert into nse.bulk_load_date(start_date, end_date)values('01-Jan-2018','31-Dec-2018');
 insert into nse.bulk_load_date(start_date, end_date)values('01-Jan-2019','31-Dec-2019');

@@ -1,0 +1,3 @@
+cd {{app_root}}
+ansible-playbook  {{app_root}}/install.yml -i environments/local --tag ticker >> {{app_logs_fldr}}/loadTickerTable_$job_id.lst  2>&1
+

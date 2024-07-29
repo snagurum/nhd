@@ -1,0 +1,10 @@
+db:
+   hostname: "192.168.1.16"
+   username: "nse"
+   pwd: "nse"
+   database: "nse"
+   schema: "nse"
+
+nse:
+   url: "https://www.nseindia.com"
+   tickerUrl: "https://nsearchives.nseindia.com/content/equities/EQUITY_L.csv"

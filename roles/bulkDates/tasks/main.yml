@@ -1,0 +1,57 @@
+---
+# tasks file for roles/bulkDates
+
+  - name: "initialize job_id"
+    ansible.builtin.set_fact:
+       job_id: "{{ lookup('pipe', 'date  \"+%Y%m%d_%H%M%S\"') }}"
+       job_name: "{{ bulkDates.job_name }}"
+       output: "{{ app_output_fldr }}"
+
+
+  - name: "start audit log"
+    ansible.builtin.include_tasks:
+       file: "suppl/common_audit.yml"
+    vars:
+       - condition: "start"
+
+  - name: "DB: create insert script for LOAD_BULK_STOCK_DATES tables"
+    community.postgresql.postgresql_query:
+       db:          "{{ db.database }}"
+       login_host:  "{{ db.hostname }}"
+       login_user:  "{{ db.username }}"
+       login_password: "{{ db.pwd }}"
+       query: "{{ bulkDates.query }}"
+    register: var_lc_stock_details
+
+  - name: "Print LOAD_BULK_STOCK_DATES insert query count"
+    ansible.builtin.debug:
+       msg: "{{ var_lc_stock_details.rowcount }}"
+    when: bulkDates.debug
+
+  - name: "Create bulk_stock_dates.sql file"
+    ansible.builtin.template:
+       src: "load_bulk_stock_dates.sql.j2"
+       dest: "{{output}}/load_bulk_stock_dates.sql"
+    when: var_lc_stock_details.rowcount  > 0
+
+  - name: "DB: load LOAD_BULK_STOCK_DATES tables"
+    community.postgresql.postgresql_script:
+       db:          "{{ db.database }}"
+       login_host:  "{{ db.hostname }}"
+       login_user:  "{{ db.username }}"
+       login_password: "{{ db.pwd }}"
+       path: "{{output}}/load_bulk_stock_dates.sql"
+    register: output1
+    when: var_lc_stock_details.rowcount > 0
+
+  - name: "Print LOAD_BULK_STOCK_DATES insert result"
+    ansible.builtin.debug:
+       msg: "{{ output1.rowcount }}"
+    when: var_lc_stock_details.rowcount > 0
+
+
+  - name: "stop audit log"
+    ansible.builtin.include_tasks:
+       file: "suppl/common_audit.yml"
+    vars:
+       - condition: "stop"

@@ -1,5 +1,5 @@
 ---
-- name: "NSE Home Page({{tsymbol}})"
+- name: "DSP NSE Home Page({{tsymbol}})"
   ansible.builtin.uri:
      url: "{{ nse_url }}"
      method: GET
@@ -11,12 +11,12 @@
      return_content: true
   register: homePage
 
-- name: "Print NSE Home Page({{tsymbol}})"
+- name: "Print DSP NSE Home Page({{tsymbol}})"
   ansible.builtin.debug:
      msg: "{{ homePage.cookies_string }}"
   when: debug
 
-- name: "NSE Lookup Company Page({{tsymbol}})"
+- name: "DSP NSE Lookup Company Page({{tsymbol}})"
   ansible.builtin.uri:
      url: "{{ nse_url }}/get-quotes/equity?symbol={{tsymbol }}"
      method: GET
@@ -31,12 +31,12 @@
 #        Accept-Encoding: "*"
   register: lookupPage
 
-- name: "Print NSE Lookup Company Page({{tsymbol}})"
+- name: "Print DSP NSE Lookup Company Page({{tsymbol}})"
   ansible.builtin.debug:
      msg: "{{ lookupPage }}"
   when: debug
 
-- name: "NSE Company Info({{tsymbol}})"
+- name: "DSP NSE Company Info({{tsymbol}})"
   ansible.builtin.uri:
      url: "{{ nse_url }}/api/quote-equity?symbol={{tsymbol }}"
      method: GET
@@ -50,17 +50,17 @@
         Accept-Encoding: "*"
   register: companyPage
 
-- name: "Print NSE Company Info({{tsymbol}})"
+- name: "Print DSP NSE Company Info({{tsymbol}})"
   ansible.builtin.debug:
      msg: "{{ companyPage }}"
   when: debug 
 
-- name: "Print cookie({{tsymbol}})"
+- name: "Print DSP cookie({{tsymbol}})"
   ansible.builtin.debug:
      msg: "{{homePage.cookies_string}};{{lookupPage.cookies_string}};{{ companyPage.cookies_string }}"
   when: debug
 
-- name: "NSE Company Trade Info({{tsymbol}})"
+- name: "DSP NSE Company Trade Info({{tsymbol}})"
   ansible.builtin.uri:
      url: "{{ nse_url }}/api/quote-equity?symbol={{tsymbol }}&section=trade_info"
      method: GET
@@ -74,12 +74,12 @@
         Accept-Encoding: "*"
   register: companyTradePage
 
-- name: "Print NSE Company Trade Info({{tsymbol}})"
+- name: "Print DSP NSE Company Trade Info({{tsymbol}})"
   ansible.builtin.debug:
      msg: "{{ companyTradePage }}"
   when: debug
 
-- name: "Print NSE Company Trade Info({{tsymbol}})"
+- name: "Print DSP NSE Company Trade Info({{tsymbol}})"
   ansible.builtin.debug:
      msg: "{{ companyPage.json }}-------------{{companyTradePage.json}}"
 #  when: debug
