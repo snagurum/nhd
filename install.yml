@@ -12,6 +12,12 @@
        - bulkDates
      tags: bulkDates
 
+   - name: load dailyDates
+     hosts: localhost
+     roles:
+       - dailyDates
+     tags: dailyDates
+
    - name: load bulkStockPrice
      hosts: localhost
      roles:

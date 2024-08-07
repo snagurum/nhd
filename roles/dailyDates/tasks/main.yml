@@ -1,0 +1,44 @@
+---
+# tasks file for roles/dailyDates
+
+  - name: "initialize job_id"
+    ansible.builtin.set_fact:
+       job_id: "{{ lookup('pipe', 'date  \"+%Y%m%d_%H%M%S\"') }}"
+       job_name: "{{ dailyDates.job_name }}"
+       output: "{{ app_output_fldr }}"
+
+  - name: "start audit log"
+    ansible.builtin.include_tasks:
+       file: "suppl/common_audit.yml"
+    vars:
+       - condition: "start"
+
+  - name: "DB: get dailyload stock count"
+    community.postgresql.postgresql_query:
+       db:          "{{ db.database }}"
+       login_host:  "{{ db.hostname }}"
+       login_user:  "{{ db.username }}"
+       login_password: "{{ db.pwd }}"
+       query: "{{ dailyDates.select_query }}"
+    register: var_lc_stock_details
+
+  - name: "Print LOAD_BULK_STOCK_DATES insert query count"
+    ansible.builtin.debug:
+       msg: "{{ var_lc_stock_details.query_result[0].count }}"
+    when: dailyDates.debug
+
+  - name: "DB: load daily ticker "
+    community.postgresql.postgresql_query:
+       db:          "{{ db.database }}"
+       login_host:  "{{ db.hostname }}"
+       login_user:  "{{ db.username }}"
+       login_password: "{{ db.pwd }}"
+       query: "{{ dailyDates.insert_query }}"
+    register: var_lc_stock_details
+    when: "{{ var_lc_stock_details.query_result[0].count == 0 }}"
+
+  - name: "stop audit log"
+    ansible.builtin.include_tasks:
+       file: "suppl/common_audit.yml"
+    vars:
+       - condition: "stop"
