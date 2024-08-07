@@ -5,7 +5,7 @@
      ansible.builtin.set_fact:
         job_id: "{{ lookup('pipe', 'date  \"+%Y%m%d_%H%M%S\"') }}"
         job_name: "{{ ticker.job_name }}"
-        output: "{{ ticker.output }}"
+        output: "{{ app_output_fldr }}"
 
    - name: "start audit log"
      ansible.builtin.include_tasks:
@@ -15,7 +15,7 @@
 
    - name: NSE ticker list
      ansible.builtin.uri:
-        url: "{{ nse.tickerUrl}}"
+        url: "{{ nse.tickerUrl }}"
         method: GET
         headers:
           User-agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0"

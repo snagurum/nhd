@@ -1,0 +1,32 @@
+---
+  - name: hello
+    hosts: localhost
+    gather_facts: false
+    vars:
+       - hello: "hello there how are you?"
+       - test: 
+            - name: "one"
+              cronjob: "*/3 * * * *"
+              job: "job"
+              state: "present"
+            - name: "two"
+              cronjob: "*/3 * * * *"
+              job: "job"
+              state: "present"
+    tasks:
+
+       - name: "print cronjobs table"
+         ansible.builtin.debug:
+            msg: "{{ test|list }}"
+
+       - name: "create CRON jobs"
+         ansible.builtin.cron:
+            name: "{{ item.name }}"
+            minute: "{{ (item.cronjob | split(' '))[0] }}"
+            hour: "{{ (item.cronjob  | split(' '))[1] }}"
+            day: "{{ (item.cronjob  | split(' '))[2] }}"
+            month: "{{ (item.cronjob  | split(' '))[3] }}"
+            weekday: "{{ (item.cronjob  | split(' '))[4] }}"
+            job: "{{ item.job }}"
+            state: "present"
+         loop: "{{test | list}}"

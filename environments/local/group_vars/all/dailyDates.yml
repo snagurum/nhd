@@ -1,0 +1,9 @@
+---
+# defaults file for roles/dailyDates
+
+dailyDates:
+   job_name: "loadDailyStockDates.yml"
+   output: "{{app_output_fldr}}/output"
+   debug: false
+   select_query: "select count(*) from nse.load_daily_stock_dates where to_char(price_date,'YYYYMMDD')=to_char(current_timestamp,'YYYYMMDD')"
+   insert_query: "insert into nse.load_daily_stock_dates(ticker, price_date, crd_date,upd_date,crd_by, upd_by)  select ticker, current_timestamp, current_timestamp, current_timestamp, 'admin', 'admin' from nse.stocks where status = 'active'"

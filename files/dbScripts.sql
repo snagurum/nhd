@@ -87,20 +87,20 @@ create table nse.load_stock_price(
 );
 
 
-create table nse.load_cronjobs(
-    name             varchar(50)   PRIMARY KEY,
-    type             varchar(50),
-    cron_exp         varchar(50),
-    job              varchar(200),
-    total_loads      integer,
-    pending_loads    integer,
-    status           varchar(20) default 'absent',
-    last_success_run timestamp,
-    crd_date         timestamp   default current_timestamp,
-    upd_date         timestamp   default current_timestamp,
-    crd_by           varchar(20),
-    upd_by           varchar(20)
-);
+-- create table nse.load_cronjobs(
+--     name             varchar(50)   PRIMARY KEY,
+--     type             varchar(50),
+--     cron_exp         varchar(50),
+--     job              varchar(200),
+--     total_loads      integer,
+--     pending_loads    integer,
+--     status           varchar(20) default 'absent',
+--     last_success_run timestamp,
+--     crd_date         timestamp   default current_timestamp,
+--     upd_date         timestamp   default current_timestamp,
+--     crd_by           varchar(20),
+--     upd_by           varchar(20)
+-- );
 
 create table nse.cronjobs(
     name             varchar(50)   PRIMARY KEY,
@@ -116,6 +116,39 @@ create table nse.cronjobs(
     crd_by           varchar(20),
     upd_by           varchar(20)
 );
+
+create table nse.load_daily_stock_dates(
+    ticker           varchar(50),        -- SYMBOL
+    price_date       date,
+    is_loaded        boolean default false,
+    crd_date         timestamp,
+    upd_date         timestamp,
+    crd_by           varchar(20),
+    upd_by           varchar(20)
+);
+
+alter table stocks add column status varchar(10) default 'active';
+
+
+create table nse.load_daily_stock_price(
+    ticker                 varchar(50),        -- SYMBOL
+    price_date             date,
+    info                   text,
+    metadata               text,
+    security_info          text,
+    sdd_details            text,
+    price_info             text,
+    industry_info          text,
+    preopen_market         text,
+    bulk_block_deals       text,
+    market_dept_order_book text,
+    security_wise_dp       text,
+    crd_date         timestamp   default current_timestamp,
+    upd_date         timestamp   default current_timestamp,
+    crd_by           varchar(20),
+    upd_by           varchar(20)
+);
+
 
 -- insert into nse.bulk_load_date(start_date, end_date)values('01-Jan-1993','31-Dec-1993');
 -- insert into nse.bulk_load_date(start_date, end_date)values('01-Jan-1994','31-Dec-1994');

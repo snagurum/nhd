@@ -1,3 +1,3 @@
-cd {{app_root}}
-ansible-playbook {{app_root}}/install.yml -i environments/local --tag cronjobs  >> {{app_logs_fldr}}/createCRONjobs.yml_$job_id.lst  2>&1
+cd {{app_code}}
+ansible-playbook {{app_code}}/install.yml -i environments/local --tag cronjobs  >> {{app_logs_fldr}}/createCRONjobs.yml_$job_id.lst  2>&1
 

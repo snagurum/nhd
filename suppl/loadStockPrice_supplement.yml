@@ -1,7 +1,7 @@
 ---
 - name: "Print paramaters for {{tsymbol}}"
   ansible.builtin.debug:
-     msg: "from_date = {{ start_date }}, end_date={{ end_date }}, ticker = {{ ticker }}" 
+     msg: "from_date = {{ start_date }}, end_date={{ end_date }}, ticker = {{ ticker }}"
   when: debug
 
 - name: "NSE Home Page({{tsymbol}})"

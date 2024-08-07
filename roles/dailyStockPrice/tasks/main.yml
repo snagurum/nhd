@@ -1,34 +1,35 @@
 ---
 # tasks file for roles/dailyStockPrice
-
+#ansible-playbook -i environments/local install.yml --tag dailyStockPrice -e "lower_limit=0" -e "upper_limit=e"
+#ansible-playbook -i environments/local install.yml --tag dailyStockPrice -e "lower_limit=f" -e "upper_limit=k"
+#ansible-playbook -i environments/local install.yml --tag dailyStockPrice -e "lower_limit=l" -e "upper_limit=r"
+#ansible-playbook -i environments/local install.yml --tag dailyStockPrice -e "lower_limit=s" -e "upper_limit=z"
    - name: "initialize job_id"
      ansible.builtin.set_fact:
         job_id: "{{ lookup('pipe', 'date  \"+%Y%m%d_%H%M%S\"') }}"
         job_name: "{{ dailyStockPrices.job_name }}"
         output: "{{ app_output_fldr }}"
-        debug: "{{ bulkStockPrices.debug }}"
-        doLogging: false
+        debug: "{{ dailyStockPrices.debug }}"
 
    - name: "start audit log"
      ansible.builtin.include_tasks:
         file: "suppl/common_audit.yml"
      vars:
         - condition: "start"
-     when: doLogging
+     when: debug
 
-#   - name: "create query for lifecycle record"
-#     ansible.builtin.set_fact:
-#        query: "{{ bulkStockPrices.query }} and to_char(start_date,'YYYY') = '{{year}}'  limit {{ bulkStockPrices.tickerCount }}"
-#     when: year is defined
-
-#   - name: "DB: Get Stock bulk load dates"
-#     community.postgresql.postgresql_query:
-#        db:          "{{ db.database }}"
-#        login_host:  "{{ db.hostname }}"
-#        login_user:  "{{ db.username }}"
-#        login_password: "{{ db.pwd }}"
-#        query: "{{ query }};"
-#     register: var_lc_stock_details
+   - name: "DB: Get Stock bulk load dates"
+     community.postgresql.postgresql_query:
+        db:          "{{ db.database }}"
+        login_host:  "{{ db.hostname }}"
+        login_user:  "{{ db.username }}"
+        login_password: "{{ db.pwd }}"
+        query: |
+           select ticker from load_daily_stock_dates
+           where is_loaded=false and substring(ticker,1,1) >='{{lower_limit}}'
+           and substring(ticker,1,1) <= '{{upper_limit}}'
+            limit {{ dailyStockPrices.tickerCount }};
+     register: var_lc_stock_details
 
    # - name: "Print RESULT"
    #   ansible.builtin.debug:
@@ -38,16 +39,15 @@
      ansible.builtin.include_tasks:
         file: suppl/loadDailyStockPrice_supplement.yml
      vars:
-      #   start_date: "{{ item.start_date[8:10]+'-'+item.start_date[5:7]+'-'+item.start_date[0:4]  }}"
-      #   end_date:   "{{ item.end_date[8:10]  +'-'+item.end_date[5:7]  +'-'+item.end_date[0:4] }}"
-        ticker: "INFY"
-        tsymbol: "INFY"
+        ticker: "{{ item.ticker }}"
+        tsymbol: "{{ item.ticker }}"
         nse_url: "{{ nse.url }}"
-   #   loop: "{{ var_lc_stock_details.query_result }}"
+     loop: "{{ var_lc_stock_details.query_result }}"
+     when: "{{ var_lc_stock_details.rowcount }}>0"
 
    - name: "stop audit log"
      ansible.builtin.include_tasks:
         file: "suppl/common_audit.yml"
      vars:
         - condition: "stop"
-     when: doLogging
+     when: debug

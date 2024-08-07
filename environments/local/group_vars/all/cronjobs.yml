@@ -11,36 +11,37 @@ cronjobs:
    debug: false
    query0: "truncate table nse.load_cronjobs;"
    persistent_crons:
-      - {name: 'load_ticker_tables'     , type: 'PERSISTANT', cron_exp: '30', job: '{{ app_scripts_fldr }}/run_load_ticker_tables.sh'   , total_loads: '1', pending_loads: '0', crd_by: 'admin', upd_by: 'admin' }
-      - {name: 'load_bulk_stock_dates'  , type: 'PERSISTANT', cron_exp: '59', job: '{{ app_scripts_fldr }}/run_load_bulk_stock_dates.sh', total_loads: '1', pending_loads: '0', crd_by: 'admin', upd_by: 'admin' }
-      - {name: 'create_cronjobs'        , type: 'PERSISTANT', cron_exp: '10', job: '{{ app_scripts_fldr }}/run_create_cronjobs.sh'      , total_loads: '1', pending_loads: '0', crd_by: 'admin', upd_by: 'admin' }
+      - {name: 'load_ticker_tables'     , type: 'PERSISTANT', cron_exp: '*/30 * * * *',    job: '{{ app_scripts_fldr }}/run_load_ticker_tables.sh'    , total_loads: '1', pending_loads: '0', crd_by: 'admin', upd_by: 'admin' }
+      - {name: 'load_bulk_stock_dates'  , type: 'PERSISTANT', cron_exp: '*/59 * * * *',    job: '{{ app_scripts_fldr }}/run_load_bulk_stock_dates.sh' , total_loads: '1', pending_loads: '0', crd_by: 'admin', upd_by: 'admin' }
+      - {name: 'create_cronjobs'        , type: 'PERSISTANT', cron_exp: '*/10 * * * *',    job: '{{ app_scripts_fldr }}/run_create_cronjobs.sh'       , total_loads: '1', pending_loads: '0', crd_by: 'admin', upd_by: 'admin' }
+      - {name: 'load_daily_stock_dates' , type: 'PERSISTANT', cron_exp: '0 14-22 * * 1-5', job: '{{ app_scripts_fldr }}/run_load_daily_stock_dates.sh', total_loads: '1', pending_loads: '0', crd_by: 'admin', upd_by: 'admin' }
    update_cronjobs: |
       with new_crons as (
          select
             'load_stock_price_bulk_'||a.year name,
             'bulk' type,
-            '3' cron_exp,
+            '*/3 * * * *' cron_exp,
             '{{ app_scripts_fldr }}/run_load_stock_price_bulk_' || a.year||'.sh' job,
             a.total total_loads ,
             ( case when b.completed is null then 0 else b.completed end) completed,
             ( case when b.completed is null then a.total else (a.total-b.completed) end) pending_loads,
-            ( case when b.completed is null then 'present' when  (a.total-b.completed = 0) then 'absent' else 'present' end) status
+            ( case when b.completed is null then 'ready' when  (a.total-b.completed = 0) then 'absent' else 'ready' end) status
          from
             (
             select
                     to_char(start_date,'YYYY') as YEAR,
                     count(*) total
                 from
-                    load_bulk_stock_dates  group by 1
+                    nse.load_bulk_stock_dates  group by 1
             ) a left outer join
             (
             select
                     to_char(start_date,'YYYY') as YEAR,
                     count(*) completed
                 from
-                    load_bulk_stock_dates  where is_loaded is true group by 1
+                    nse.load_bulk_stock_dates  where is_loaded is true group by 1
             ) b  on b.YEAR = a.YEAR
-      )insert into cronjobs(
+      )insert into nse.cronjobs(
          name             ,type             ,cron_exp         ,job              ,
          total_loads      ,pending_loads    ,status           ,crd_by           ,upd_by        )
        select
@@ -52,11 +53,57 @@ cronjobs:
             total_loads=EXCLUDED.total_loads ,
             pending_loads=EXCLUDED.pending_loads,
             status=EXCLUDED.status;
+update_daily_cronjobs: |
+      with new_crons as (
+         select
+            'load_stock_price_daily_'||'{{ item }}' name,
+            'daily' type,
+            '*/3 * * * *' cron_exp,
+            '{{ app_scripts_fldr }}/run_load_stock_price_daily_' || '{{ item }}' ||'.sh' job,
+            a.total total_loads ,
+            ( case when b.completed is null then 0 else b.completed end) completed,
+            ( case when b.completed is null then a.total else (a.total-b.completed) end) pending_loads,
+            ( case when b.completed is null then 'ready' when  (a.total-b.completed = 0) then 'absent' else 'ready' end) status
+         from
+            (
+               select
+                     to_char(price_date,'YYYYMMDD') as price_date,
+                     count(*) total
+                  from
+                     nse.load_daily_stock_dates
+                  where
+                     substring(ticker,1,1) >= substring('{{ item }}',1,1) and substring(ticker,1,1) <= substring('{{ item }}',3,1)
+                     and to_char(price_date,'YYYYMMDD')=to_char(current_timestamp,'YYYYMMDD')  group by 1
+            ) a left outer join
+            (
+               select
+                     to_char(price_date,'YYYYMMDD') as price_date,
+                     count(*) completed
+                  from
+                     nse.load_daily_stock_dates
+                  where
+                     substring(ticker,1,1) >= substring('{{ item }}',1,1) and substring(ticker,1,1) <= substring('{{ item }}',3,1)
+                     and is_loaded is true
+                     and to_char(price_date,'YYYYMMDD')=to_char(current_timestamp,'YYYYMMDD')  group by 1
+            ) b  on b.price_date = a.price_date
+      )insert into nse.cronjobs(
+         name             ,type             ,cron_exp         ,job              ,
+         total_loads      ,pending_loads    ,status           ,crd_by           ,upd_by        )
+       select
+              a.name             ,a.type             ,a.cron_exp         ,a.job              ,
+              a.total_loads      ,a.pending_loads    ,a.status     ,'admin'          ,'admin'      from new_crons a
+       on conflict(name) do update
+            set type = EXCLUDED.type,
+            job=EXCLUDED.job,
+            total_loads=EXCLUDED.total_loads ,
+            pending_loads=EXCLUDED.pending_loads,
+            status=EXCLUDED.status;
+
 insertQuery_persistent_crons: |
   insert into {{db.schema}}.cronjobs(name,type,cron_exp,job,total_loads,pending_loads,status,crd_by,upd_by,upd_date)values(
-      '{{ item.name}}'     , 
+      '{{ item.name}}'     ,
       '{{ item.type}}',
-      '{{ item.cron_exp}}' , 
+      '{{ item.cron_exp}}' ,
       '{{ item.job }}'   ,
       '{{ item.total_loads}}',
       '{{ item.pending_loads}}',

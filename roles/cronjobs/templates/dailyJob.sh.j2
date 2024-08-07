@@ -1,0 +1,4 @@
+cd {{app_code}}
+tempdate=$(date '+%Y%m%d')
+ansible-playbook {{app_code}}/install.yml -i environments/local --tag dailyStockPrices -e 'letters_range={{item.name[-3:]}}' >>{{app_logs_fldr}}/{{item.name}}_$tempdate.lst 2>&1
+

@@ -79,7 +79,67 @@
      msg: "{{ companyTradePage }}"
   when: debug
 
-- name: "Print DSP NSE Company Trade Info({{tsymbol}})"
+#- name: "Print DSP NSE Company Trade Info({{tsymbol}})"
+#  ansible.builtin.debug:
+#     msg: "{{ companyPage.json }}-------------{{companyTradePage.json}}"
+##  when: debug
+
+- name: "Print DSP NSE Company Page Info({{tsymbol}})"
   ansible.builtin.debug:
-     msg: "{{ companyPage.json }}-------------{{companyTradePage.json}}"
-#  when: debug
+     msg:
+        - "info          = {{ companyPage | json_query('*.info') }}"
+        - "metadata      = {{ companyPage | json_query('*.metadata') }}"
+        - "securityInfo  = {{ companyPage | json_query('*.securityInfo') }}"
+        - "sddDetails    = {{ companyPage | json_query('*.sddDetails') }}"
+        - "priceInfo     = {{ companyPage | json_query('*.priceInfo') }}"
+        - "industryInfo  = {{ companyPage | json_query('*.industryInfo') }}"
+        - "preOpenMarket = {{ companyPage | json_query('*.preOpenMarket') }}"
+
+- name: "Print DSP NSE Company Trade Page Info({{tsymbol}})"
+  ansible.builtin.debug:
+     msg:
+        - "bulkBlockDeals      = {{ companyTradePage | json_query('*.bulkBlockDeals') }}"
+        - "marketDeptOrderBook = {{ companyTradePage | json_query('*.marketDeptOrderBook') }}"
+        - "securityWiseDP      = {{ companyTradePage | json_query('*.securityWiseDP') }}"
+
+- name: "build variables ({{tsymbol}})"
+  ansible.builtin.set_fact:
+     _info                : "{{ companyPage | json_query('*.info') | to_json }}"
+     _metadata            : "{{ companyPage | json_query('*.metadata') | to_json }}"
+     _securityInfo        : "{{ companyPage | json_query('*.securityInfo') | to_json }}"
+     _sddDetails          : "{{ companyPage | json_query('*.sddDetails') | to_json }}"
+     _priceInfo           : "{{ companyPage | json_query('*.priceInfo') | to_json }}"
+     _industryInfo        : "{{ companyPage | json_query('*.industryInfo')  | to_json}}"
+     _preOpenMarket       : "{{ companyPage | json_query('*.preOpenMarket') | to_json }}"
+     _bulkBlockDeals      : "{{ companyTradePage | json_query('*.bulkBlockDeals') | to_json }}"
+     _marketDeptOrderBook : "{{ companyTradePage | json_query('*.marketDeptOrderBook') | to_json }}"
+     _securityWiseDP      : "{{ companyTradePage | json_query('*.securityWiseDP') | to_json }}"
+
+- name: "DB: load_daiy_stock_price for {{ tsymbol }}"
+  community.postgresql.postgresql_query:
+     db:          "{{ db.database }}"
+     login_host:  "{{ db.hostname }}"
+     login_user:  "{{ db.username }}"
+     login_password: "{{ db.pwd }}"
+     query: |
+        insert into load_daily_stock_price(
+        ticker, price_date, info, metadata, security_info, sdd_details,
+        price_info, industry_info, preopen_market, bulk_block_deals, market_dept_order_book,
+        security_wise_dp, crd_date,upd_date, crd_by, upd_by)
+        values( '{{ tsymbol }}','yyyy/mm/dd', '{{ _info }}', '{ _metadata }}', '{{ _securityInfo }}', '{{ _sddDetails }}',
+        '{{ _priceInfo }}', '{{ _industryInfo }}', '{{ _preOpenMarket }}', '{{ _bulkBlockDeals }}', '{{ _marketDeptOrderBook }}',
+        '{{ _securityWiseDP }}',current_timestamp, current_timestamp, 'admin','admin');
+  register: dbResult0
+
+- name: "DB: update load_daily_stock_dates.is_loaded for {{ tsymbol }}"
+  community.postgresql.postgresql_query:
+     db:          "{{ db.database }}"
+     login_host:  "{{ db.hostname }}"
+     login_user:  "{{ db.username }}"
+     login_password: "{{ db.pwd }}"
+     query: "update nse.load_daily_stock_dates set is_loaded=true where ticker='{{tsymbol}}' and  to_char(price_date,'DD-MM-YYYY')=to_char(current_timestamp,'DD-MM-YYYY') "
+  register: dbResult1
+
+- name: pause
+  ansible.builtin.pause:
+     seconds: "2"

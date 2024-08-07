@@ -22,7 +22,20 @@
          login_password: "{{ db.pwd }}"
          query: "{{ cronjobs.update_cronjobs }}"
 
-  - name: "load persistant cron jobs"
+  - name: "DB: update Daily Cronjob table"
+    community.postgresql.postgresql_query:
+         db:          "{{ db.database }}"
+         login_host:  "{{ db.hostname }}"
+         login_user:  "{{ db.username }}"
+         login_password: "{{ db.pwd }}"
+         query: "{{ update_daily_cronjobs }}"
+    loop:
+       - '0-d'
+       - 'e-k'
+       - 'l-r'
+       - 's-z'
+
+  - name: "DB: load persistant cron jobs"
     community.postgresql.postgresql_query:
         db:          "{{ db.database }}"
         login_host:  "{{ db.hostname }}"
@@ -31,18 +44,28 @@
         query: "{{ insertQuery_persistent_crons }}"
     loop: "{{ cronjobs.persistent_crons }}"
 
-  - name: "DB: update Cronjob table"
+  - name: "DB: mark few jobs to run"
     community.postgresql.postgresql_query:
         db:          "{{ db.database }}"
         login_host:  "{{ db.hostname }}"
         login_user:  "{{ db.username }}"
         login_password: "{{ db.pwd }}"
-        query: "select name, case when type = 'PERSISTANT' then 'run_'||name||'.sh.j2' else 'cronJob.sh.j2' end src, cron_exp, job, total_loads, pending_loads, status from nse.cronjobs;"
-    register: _cronJobs
+        query: "update nse.cronjobs set status ='present' where name in (select name from nse.cronjobs where status = 'ready' limit {{ concurrent_thread }})"
 
-  - name: "Print query result"
-    ansible.builtin.debug:
-        msg: "query = {{ _cronJobs }}"
+  - name: "DB: get jobs from  Cronjob table"
+    community.postgresql.postgresql_query:
+        db:          "{{ db.database }}"
+        login_host:  "{{ db.hostname }}"
+        login_user:  "{{ db.username }}"
+        login_password: "{{ db.pwd }}"
+        query: |
+           select name,
+           case when type = 'PERSISTANT' then 'run_'||name||'.sh.j2'
+           when type = 'daily' then 'dailyJob.sh.j2'
+           else 'cronJob.sh.j2' end src, cron_exp, job, total_loads, pending_loads,
+           case when status = 'ready' then 'absent' else status end status
+           from nse.cronjobs;
+    register: _cronJobs
 
   - name: "create Cronjob file"
     ansible.builtin.template:
@@ -50,11 +73,50 @@
         dest: "{{ app_scripts_fldr }}/run_{{item.name}}.sh"
         mode: 0700
     loop: "{{_cronJobs.query_result|list}}"
-    when: '"present"=="{{item.status}}"'
+    # when: '"absent"!="{{item.status}}"'
+    # when: '"present"=="{{item.status}}" || "ready"=="{{item.status}}"'
 
-  - name: "Update & List CRON jobs"
-    ansible.builtin.include_tasks:
-        file: suppl/common_list_cronjob.yml
+  # - name: "print cronjobs table"
+  #   ansible.builtin.debug:
+  #      msg: "{{ _cronJobs.query_result|list }}"
+
+
+  - name: "create CRON jobs"
+    ansible.builtin.cron:
+       name: "{{item.name}}"
+       minute: "{{ ( ( item.cron_exp + ' * ') | split(' '))[0] }}"
+       hour: "{{ (item.cron_exp | split(' '))[1] }}"
+       day: "{{ ( ( item.cron_exp + ' * ' ) | split(' '))[2] }}"
+       month: "{{ (item.cron_exp | split(' '))[3] }}"
+       weekday: "{{ (item.cron_exp | split(' '))[4] }}"
+       job: "{{ item.job }}"
+       state: "{{ item.status }}"
+    loop: "{{ _cronJobs.query_result|list }}"
+    # when:  "{{item.status}}" != "ready"
+    loop_control:
+       label: "{{ item.name }}"
+
+  - name: "Print jobs from  Cronjob"
+    ansible.builtin.debug:
+       msg: "{{_cronJobs}}"
+    when: debug
+
+  - name: "get Crontab entries"
+    ansible.builtin.command:
+       argv:
+          - "crontab"
+          - "-l"
+    ignore_errors: true
+    changed_when: false
+    register: cron_op
+
+  - name: "Print Cron Jobs"
+    ansible.builtin.debug:
+       msg: "{{ cron_op.stdout_lines }}"
+
+  # - name: "Update & List CRON jobs"
+  #   ansible.builtin.include_tasks:
+  #       file: suppl/common_list_cronjob.yml
 
   - name: "stop audit log"
     ansible.builtin.include_tasks:

@@ -8,3 +8,4 @@ db:
 nse:
    url: "https://www.nseindia.com"
    tickerUrl: "https://nsearchives.nseindia.com/content/equities/EQUITY_L.csv"
+

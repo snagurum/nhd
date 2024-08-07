@@ -1,0 +1,3 @@
+cd {{app_code}}
+ansible-playbook  {{app_code}}/install.yml -i environments/local --tag dailyDates  >> {{app_logs_fldr}}/loadDailyStockDates_$job_id.lst  2>&1
+
