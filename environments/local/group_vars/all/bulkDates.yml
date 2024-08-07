@@ -8,11 +8,11 @@ bulkDates:
    query: |
       select aa.ticker, ''||b.start_date start_date, ''||b.end_date end_date
           from
-            (select a.ticker, max(a.start_date) start_date from 
-                ( select s.ticker, s.date_of_listing start_date from {{db.schema}}.stocks as s 
-                    union 
-                  select ls.ticker, max(ls.end_date)+ INTERVAL '1 year' - INTERVAL '1 day' start_date 
-                    from {{db.schema}}.load_bulk_stock_dates ls group by ls.ticker 
+            (select a.ticker, max(a.start_date) start_date from
+                ( select s.ticker, s.date_of_listing start_date from {{db.schema}}.stocks as s
+                    union
+                  select ls.ticker, max(ls.end_date)+ INTERVAL '1 year' - INTERVAL '1 day' start_date
+                    from {{db.schema}}.load_bulk_stock_dates ls group by ls.ticker
                 ) a group by a.ticker ) aa ,
             {{db.schema}}.bulk_load_date b
           where
