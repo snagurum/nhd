@@ -2,9 +2,27 @@
   - name: hello
     hosts: localhost
     gather_facts: false
+    debugger: true
     vars:
        - hello: "hello there how are you?"
-       - test: 
+       - debug: false
+       - nse:
+            url: "https://www.nseindia.com"
+            tickerUrl: "https://nsearchives.nseindia.com/content/equities/EQUITY_L.csv"
+            tickerUrl1: "https://nseindia.com"
+#            tickerUrl1: "https://google.com"
+
+            userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36'
+            acceptLanguage: 'en,gu;q=0.9,hi;q=0.8'
+            acceptEncoding: 'gzip, deflate, br'
+
+#            User-agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0"
+#            Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8'
+#            Accept-Language: 'en-US,en;q=0.5'
+#            Accept-Encoding: '""'
+
+
+       - test:
             - name: "one"
               cronjob: "*/3 * * * *"
               job: "job"
@@ -15,18 +33,61 @@
               state: "present"
     tasks:
 
+       - name: 'shell {{nse.tickerUrl1}}'
+         ansible.builtin.shell: |
+            curl  -D header.txt  -Ls {{ nse.url }}  \
+                -H 'User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/113.0' \
+                -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8' \
+                -H 'Accept-Language: en-US,en;q=0.5' \
+                -H 'Cache-Control: no-cache'    \
+                -H 'Connection: keep-alive' \
+                -H 'Accept-Encoding: *'
+         register: output
+
        - name: "print cronjobs table"
          ansible.builtin.debug:
-            msg: "{{ test|list }}"
+            msg: "{{ output }}"
+#         when: debug
 
-       - name: "create CRON jobs"
-         ansible.builtin.cron:
-            name: "{{ item.name }}"
-            minute: "{{ (item.cronjob | split(' '))[0] }}"
-            hour: "{{ (item.cronjob  | split(' '))[1] }}"
-            day: "{{ (item.cronjob  | split(' '))[2] }}"
-            month: "{{ (item.cronjob  | split(' '))[3] }}"
-            weekday: "{{ (item.cronjob  | split(' '))[4] }}"
-            job: "{{ item.job }}"
-            state: "present"
-         loop: "{{test | list}}"
+#       - name: '{{nse.tickerUrl1}}'
+#         uri:
+#            url: '{{nse.tickerUrl1}}'
+#            method: GET
+#            headers:
+#               user-agent: "{{ nse.userAgent }}"
+#               accept-language: "{{ nse.acceptLanguage }}"
+#               accept-encoding: "{{ nse.acceptEncoding }}"
+#            timeout: 5
+#         register: result
+
+#       - name: "print cronjobs table"
+#         ansible.builtin.debug:
+#            msg: "{{ test|list }}"
+#         when: debug
+
+#       - name: "create CRON jobs"
+#         ansible.builtin.cron:
+#            name: "{{ item.name }}"
+#            minute: "{{ (item.cronjob | split(' '))[0] }}"
+#            hour: "{{ (item.cronjob  | split(' '))[1] }}"
+#            day: "{{ (item.cronjob  | split(' '))[2] }}"
+#            month: "{{ (item.cronjob  | split(' '))[3] }}"
+#            weekday: "{{ (item.cronjob  | split(' '))[4] }}"
+#            job: "{{ item.job }}"
+#            state: "present"
+#         loop: "{{test | list}}"
+#         when: debug
+
+
+#               User-Agent: 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/113.0'
+
+#       - name: NSE ticker list
+#         ansible.builtin.uri:
+#            url: "{{ nse.tickerUrl }}"
+#            method: GET
+#            headers:
+#               User-agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0"
+#               Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8"
+#               Accept-Language: "en-US,en;q=0.5"
+#               Accept-Encoding: "*"
+#            return_content: true

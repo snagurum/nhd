@@ -7,3 +7,4 @@ app_output_fldr: "{{ app_root }}/output"
 
 concurrent_thread: 1
 
+use_uri_4_nse: true

@@ -1,3 +1,4 @@
+
 ---
 # tasks file for roles/ticker
 
@@ -24,6 +25,30 @@
           Accept-Encoding: ""
         return_content: true
      register: var_tickers
+     when: use_uri_4_nse
+
+   - name: 'shell {{ nse.tickerUrl }}'
+     ansible.builtin.shell: |
+        curl   -s {{ nse.tickerUrl }}  \
+            -H 'User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/113.0' \
+            -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8' \
+            -H 'Accept-Language: en-US,en;q=0.5' \
+            -H 'Accept-Encoding: ""'
+     register: var_tickers
+     when: not use_uri_4_nse
+
+   - name: 'build data for templating from url'
+     ansible.builtin.set_fact:
+        tickerList:
+           content: "{{ var_tickers.content }}"
+     when: use_uri_4_nse
+
+   - name: 'build data for templating from shell'
+     ansible.builtin.set_fact:
+        tickerList:
+           content: "{{ var_tickers.stdout }}"
+     when: not use_uri_4_nse
+
 
    - name: "Print NSE ticker list"
      ansible.builtin.debug:
@@ -34,7 +59,7 @@
      ansible.builtin.template:
         src: "tickers.csv.j2"
         dest: "{{output}}/tickers.sql"
-     when: var_tickers.status == 200
+#     when: var_tickers.status == 200
 
    - name: "DB: Load ticker list"
      community.postgresql.postgresql_script:
@@ -44,7 +69,7 @@
         login_password: "{{ db.pwd }}"
         path: "{{output}}/tickers.sql"
      register: db_results0
-     when: var_tickers.status == 200
+#     when: var_tickers.status == 200
 
    - name: "Print NSE ticker list"
      ansible.builtin.debug:

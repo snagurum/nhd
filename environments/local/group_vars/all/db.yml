@@ -1,7 +1,7 @@
 db:
-   hostname: "192.168.1.16"
-   username: "nse"
-   pwd: "nse"
+   hostname: "aws-0-ap-south-1.pooler.supabase.com"
+   username: "postgres.udzvccmrhfklqylpwcma"
+   pwd: "J1BnzMyHuHpvIhY3"
    database: "nse"
    schema: "nse"
 

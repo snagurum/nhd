@@ -1,7 +1,7 @@
 truncate nse.load_stocks;
 
 {% set tempVar="insert into nse.load_stocks(ticker, name, series,     date_of_listing, paid_up_value, market_lot, isin, face_value,is_new ,crd_date , upd_date, crd_by, upd_by ) values(" %}
-{% for item in  var_tickers.content.split('\n')  %}
+{% for item in  tickerList.content.split('\n')  %}
 {% if not loop.last %}{% if loop.index != 1 %}
 {% set tempVar1=item.split(',') %}
 {# {{tempVar}}{% for item1 in  item.split(',')  %}   '{{ item1.replace("'","''") }}',    {%- endfor %} null,current_timestamp,current_timestamp,'admin','admin'); #}
