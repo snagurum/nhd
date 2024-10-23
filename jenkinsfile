@@ -15,14 +15,19 @@ pipeline{
         SNS_TOPIC_ARN = "arn:aws:sns:${AWS_DEFAULT_REGION}:${AWS_ACCOUNT_ID}:jenkins"
     }
 
-    options([
-        parameters ([
-                choice(name: 'ENVIRONMENT',
-                        choices: ['none'] + ['dev', 'prod'] ,
-                        description: 'Environment to deploy',)
-        ]),
-        [$class: 'BuildDiscarderProperty', strategy: [$class: 'LogRotator', artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '', numToKeepStr: '100']]
-    ])
+    // options([
+    //     parameters ([
+    //             choice(name: 'ENVIRONMENT',
+    //                     choices: ['none'] + ['dev', 'prod'] ,
+    //                     description: 'Environment to deploy',)
+    //     ]),
+    //     [$class: 'BuildDiscarderProperty', strategy: [$class: 'LogRotator', artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '', numToKeepStr: '100']]
+    // ])
+
+    parameters {
+        string(name: 'BUILD_ENV', defaultValue: 'production', description: 'Environment to build')
+        choice(name: 'DEPLOY_REGION', choices: ['us-east-1', 'eu-west-1'], description: 'AWS Region to deploy')
+    }
 
     // tools {
     //     maven 'maven' // Define Maven tool installation
