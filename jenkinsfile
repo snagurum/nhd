@@ -15,6 +15,15 @@ pipeline{
         SNS_TOPIC_ARN = "arn:aws:sns:${AWS_DEFAULT_REGION}:${AWS_ACCOUNT_ID}:jenkins"
     }
 
+    properties([
+        parameters ([
+                choice(name: 'ENVIRONMENT',
+                        choices: ['none'] + ['dev', 'prod'] ,
+                        description: 'Environment to deploy',)
+        ]),
+        [$class: 'BuildDiscarderProperty', strategy: [$class: 'LogRotator', artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '', numToKeepStr: '100']]
+    ])
+
     // tools {
     //     maven 'maven' // Define Maven tool installation
     // }
