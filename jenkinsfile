@@ -42,7 +42,7 @@ pipeline{
                     echo 'params.BUILD_ENV = ${params.BUILD_ENV}'
                     echo 'BUILD_ENV        = ${BUILD_ENV}'
                     echo 'BUILD_NUMBER     = ${BUILD_NUMBER}'
-                    echo 'BRANCH     = ${BRANCH}'
+                    echo 'BRANCH_NAME     = ${BRANCH_NAME}'
                     """
                     // git branch: BRANCH_NAME, url: 'https://github.com/snagurum/nhd.git'
                 }
