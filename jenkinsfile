@@ -48,10 +48,13 @@ pipeline{
             }
         }
         stage('Checkout SCM') {
-            // checkout scm
-            sh """
+            steps{
+                sh """
                     echo 'Hi there'
-                    """
+                """
+            checkout scm
+            }   
+            
         }
     }    
 }
