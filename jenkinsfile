@@ -28,9 +28,9 @@ pipeline{
         choice(name: 'ENVIRONMENT', choices: ['DEV', 'Production'], description: 'Environment')
     }
 
-    // tools {
-    //     maven 'maven' // Define Maven tool installation
-    // }
+    tools {
+        maven 'maven' // Define Maven tool installation
+    }
 
     stages {
         stage('Git Checkout') {
