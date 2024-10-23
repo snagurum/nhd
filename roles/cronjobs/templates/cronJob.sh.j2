@@ -1,3 +1,0 @@
-cd {{app_root}}
-ansible-playbook {{app_root}}/install.yml -i environments/local --tag bulkStockPrices -e 'year={{item.name[-4:]}}' >>{{app_logs_fldr}}/{{item.name}}.lst 2>&1
-

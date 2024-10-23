@@ -1,2 +1,4 @@
-# ignore ALL .log files
-**/*.data.sql
+target/**
+.vscode/**
+.idea/**
+.idea/compiler.xml
