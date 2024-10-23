@@ -4,7 +4,7 @@ pipeline{
     agent any
 
     environment {
-        BRANCH_NAME = 'development' // Default branch nam
+        // BRANCH_NAME = 'development' // Default branch nam
         AWS_DEFAULT_REGION = 'us-east-1'
         AWS_ACCOUNT_ID = '179438333696'
         REPOSITORY_URI = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
