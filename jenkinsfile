@@ -42,6 +42,7 @@ pipeline{
                     echo 'BUILD_ENV        = ${ENVIRONMENT}'
                     echo 'BUILD_NUMBER     = ${BUILD_NUMBER}'
                     echo 'BRANCH_NAME     = ${BRANCH_NAME}'
+                    echo 'automatic trigger....'
                     """
                     // git branch: BRANCH_NAME, url: 'https://github.com/snagurum/nhd.git'
                 }
@@ -52,7 +53,7 @@ pipeline{
                 sh """
                     echo 'Hi there'
                 """
-            checkout scm
+                checkout scm
             }   
             
         }
