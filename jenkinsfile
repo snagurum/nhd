@@ -1,0 +1,32 @@
+
+
+pipeline{
+    agent any
+
+    environment {
+        BRANCH_NAME = 'development' // Default branch nam
+        AWS_DEFAULT_REGION = 'us-east-1'
+        AWS_ACCOUNT_ID = '179438333696'
+        REPOSITORY_URI = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
+        DOCKER_IMAGE_TAG_PROGRAM = "${REPOSITORY_URI}/program-service:latest"
+        AWS_ECR_REPO = "program-service"
+        ECS_CLUSTER = "Devcluster"
+        ECS_SERVICE = "Programservice"
+        SNS_TOPIC_ARN = "arn:aws:sns:${AWS_DEFAULT_REGION}:${AWS_ACCOUNT_ID}:jenkins"
+    }
+
+    // tools {
+    //     maven 'maven' // Define Maven tool installation
+    // }
+
+    stages {
+        stage('Git Checkout') {
+            steps {
+                script {
+                    git branch: BRANCH_NAME, url: 'https://github.com/snagurum/nhd.git'
+                    sh echo 'Hi there'
+                }
+            }
+        }
+    }    
+}

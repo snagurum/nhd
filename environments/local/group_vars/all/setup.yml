@@ -1,4 +1,0 @@
-app_root: /app/momentum
-app_logs_fldr: "{{ app_root }}/logs"
-app_scripts_fldr: "{{ app_root }}/scripts"
-app_output_fldr: "{{ app_root }}/output"
