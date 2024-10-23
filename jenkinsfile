@@ -15,7 +15,7 @@ pipeline{
         SNS_TOPIC_ARN = "arn:aws:sns:${AWS_DEFAULT_REGION}:${AWS_ACCOUNT_ID}:jenkins"
     }
 
-    properties([
+    options([
         parameters ([
                 choice(name: 'ENVIRONMENT',
                         choices: ['none'] + ['dev', 'prod'] ,
