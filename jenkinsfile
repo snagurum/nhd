@@ -23,7 +23,7 @@ pipeline{
         stage('Git Checkout') {
             steps {
                 script {
-                    sh echo 'Hi there'
+                    sh 'echo Hi there'
                     // git branch: BRANCH_NAME, url: 'https://github.com/snagurum/nhd.git'
                 }
             }
