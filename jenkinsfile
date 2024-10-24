@@ -14,7 +14,7 @@ pipeline{
     agent any
 
     parameters {
-        choice(name: 'ENVIRONMENT', choices: ['DEV', 'Production'], description: 'Environment')
+        choice(name: 'ENVIRONMENT', choices: ['none','DEV', 'Production'], description: 'Environment')
     }
 
     environment {
@@ -51,24 +51,17 @@ pipeline{
                     set -x
                     """
                     script{
-                        if (env.ENVIRONMENT == 'Production' && BRANCH_NAME != 'prod'){
-                            // echo 'Invalid deployment options ENVIRONMENT =' + env.ENVIRONMENT + '& BRANCH_NAME = ' + BRANCH_NAME
-                            // return 
+                        if (env.ENVIRONMENT == 'none'){
                             currentBuild.result = 'ABORTED'
-                            error('Invalid deployment options ENVIRONMENT =' + env.ENVIRONMENT + '& BRANCH_NAME = ' + BRANCH_NAME)
-                            // currentBuild.result = 'FAILURE'
-                            // currentBuild.getRawBuild().getExecutor().interrupt(Result.SUCCESS)
-                            // sleep(1)
+                            error('Invalid deployment options ENVIRONMENT =' + env.ENVIRONMENT )
+                        }
+                        else if (env.ENVIRONMENT == 'Production' && BRANCH_NAME != 'prod'){
+                            currentBuild.result = 'ABORTED'
+                            error('Invalid deployment options ENVIRONMENT =' + env.ENVIRONMENT + ' & BRANCH_NAME = ' + BRANCH_NAME)
                         }
                     }
                 }
             }
-
-                        // if (env.ENVIRONMENT == 'Production' && BRANCH_NAME != 'prod'){
-                        //     // echo 'Invalid deployment options ENVIRONMENT =' + env.ENVIRONMENT + '& BRANCH_NAME = ' + BRANCH_NAME
-                        //     // currentBuild.result = 'FAILURE'
-                        //     return 
-                        // }
 
             stage('Git Checkout') {
                 steps{
