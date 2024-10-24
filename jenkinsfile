@@ -22,8 +22,8 @@ pipeline{
         ECS_SERVICE = "Programservice"
 
         AWS_DEFAULT_REGION = 'us-east-1'
-        AWS_ACCOUNT_ID = accounts.get('dev')
-        ECS_CLUSTER = clusters.get('dev')
+        AWS_ACCOUNT_ID = accounts.get(env.ENVIRONMENT)
+        ECS_CLUSTER = clusters.get(env.ENVIRONMENT)
         REPOSITORY_URI = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
         DOCKER_IMAGE_TAG_PROGRAM = "${REPOSITORY_URI}/program-service:latest"
         SNS_TOPIC_ARN = "arn:aws:sns:${AWS_DEFAULT_REGION}:${AWS_ACCOUNT_ID}:jenkins"
