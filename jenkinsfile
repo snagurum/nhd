@@ -4,13 +4,19 @@ pipeline{
     agent any
 
     environment {
-        // BRANCH_NAME = 'development' // Default branch nam
+        Map accounts = [
+            "dev"     : "179438333696",
+            "prod"    : "179438333696"
+        ]
+        Map clusters = [
+            "dev"     : "Devcluster",
+            "prod"    : "Experta_Prod"
+        ]
         AWS_DEFAULT_REGION = 'us-east-1'
         AWS_ACCOUNT_ID = '179438333696'
         REPOSITORY_URI = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
         DOCKER_IMAGE_TAG_PROGRAM = "${REPOSITORY_URI}/program-service:latest"
         AWS_ECR_REPO = "program-service"
-        ECS_CLUSTER = "Devcluster"
         ECS_SERVICE = "Programservice"
         SNS_TOPIC_ARN = "arn:aws:sns:${AWS_DEFAULT_REGION}:${AWS_ACCOUNT_ID}:jenkins"
     }
@@ -33,7 +39,10 @@ pipeline{
     }
 
     stages {
+
         stage('Git Checkout') {
+            AWS_ACCOUNT_ID = accounts.get(params.ENVIRONMENT)
+            ECS_CLUSTER = clusters.get(params.ENVIRONMENT)
             steps {
                 script {
                     sh """
@@ -42,6 +51,8 @@ pipeline{
                     echo 'BUILD_ENV        = ${ENVIRONMENT}'
                     echo 'BUILD_NUMBER     = ${BUILD_NUMBER}'
                     echo 'BRANCH_NAME     = ${BRANCH_NAME}'
+                    echo 'AWS_ACCOUNT_ID     = ${AWS_ACCOUNT_ID}'
+                    echo 'ECS_CLUSTER     = ${ECS_CLUSTER}'
                     echo 'automatic trigger....'
                     """
                     // git branch: BRANCH_NAME, url: 'https://github.com/snagurum/nhd.git'
