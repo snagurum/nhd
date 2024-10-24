@@ -52,11 +52,13 @@ pipeline{
                     """
                     script{
                         if (env.ENVIRONMENT == 'Production' && BRANCH_NAME != 'prod'){
-                            echo 'Invalid deployment options ENVIRONMENT =' + env.ENVIRONMENT + '& BRANCH_NAME = ' + BRANCH_NAME
-                            currentBuild.result = 'FAILURE'
-                            currentBuild.getRawBuild().getExecutor().interrupt(Result.SUCCESS)
-                            sleep(1)
+                            // echo 'Invalid deployment options ENVIRONMENT =' + env.ENVIRONMENT + '& BRANCH_NAME = ' + BRANCH_NAME
                             // return 
+                            currentBuild.result = 'ABORTED'
+                            error('Invalid deployment options ENVIRONMENT =' + env.ENVIRONMENT + '& BRANCH_NAME = ' + BRANCH_NAME)
+                            // currentBuild.result = 'FAILURE'
+                            // currentBuild.getRawBuild().getExecutor().interrupt(Result.SUCCESS)
+                            // sleep(1)
                         }
                     }
                 }
