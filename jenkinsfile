@@ -1,29 +1,36 @@
 node {
     // Declare myMap at the top level
-    def myMap = [:]
+    def accounts = [:]
+    def clusters = [:]
     
     environment {
         AWS_DEFAULT_REGION = 'us-east-1'
-        AWS_ACCOUNT_ID = '179438333696'
+
+        accounts['dev'] = '179438333696'
+        accounts['prod'] = '179438333696'
+        clusters = ['dev'] = 'Devcluster'
+        clusters = ['prod'] = 'Experta_Prod'
+        AWS_DEFAULT_REGION  = 'us-east-1'
+        AWS_ACCOUNT_ID = accounts.get(params.ENVIRONMENT)
+        ECS_CLUSTER = clusters.get(params.ENVIRONMENT)
         REPOSITORY_URI = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
         DOCKER_IMAGE_TAG_PROGRAM = "${REPOSITORY_URI}/program-service:latest"
+
         AWS_ECR_REPO = "program-service"
         ECS_SERVICE = "Programservice"
         SNS_TOPIC_ARN = "arn:aws:sns:${AWS_DEFAULT_REGION}:${AWS_ACCOUNT_ID}:jenkins"
+
     }
 
     stage('Initialize') {
         // Populate the map
-        myMap['name'] = 'Jenkins'
-        myMap['version'] = '2.346.1'
-        myMap['status'] = 'running'
 
-        echo "Name: ${myMap.name}"
-        echo "Version: ${myMap.version}"
+        echo "AWS_ACCOUNT_ID: ${AWS_ACCOUNT_ID}"
+        echo "ECS_CLUSTER: ${ECS_CLUSTER}"
     }
 
     stage('Use Map Data') {
         // Access myMap in the next stage
-        echo "Status: ${myMap['status']}"
+        echo "Status: ${ECS_CLUSTER}"
     }
 }
