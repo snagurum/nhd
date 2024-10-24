@@ -8,8 +8,8 @@ node {
 
         accounts['dev'] = '179438333696'
         accounts['prod'] = '179438333696'
-        clusters = ['dev'] = 'Devcluster'
-        clusters = ['prod'] = 'Experta_Prod'
+        clusters['dev'] = 'Devcluster'
+        clusters['prod'] = 'Experta_Prod'
         AWS_DEFAULT_REGION  = 'us-east-1'
         AWS_ACCOUNT_ID = accounts.get(params.ENVIRONMENT)
         ECS_CLUSTER = clusters.get(params.ENVIRONMENT)
