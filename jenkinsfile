@@ -46,9 +46,10 @@ pipeline{
                     echo "AWS_ECR_REPO             = ${AWS_ECR_REPO}"
                     echo "ECS_SERVICE              = ${ECS_SERVICE}"
                     """
-                    
-                    if (env.ENVIRONMENT == 'Production' && BRANCH_NAME != 'prod'){
-                        echo 'Invalid deployment options'
+                    script{
+                        if (env.ENVIRONMENT == 'Production' && BRANCH_NAME != 'prod'){
+                            echo 'Invalid deployment options'
+                        }
                     }
                 }
             }
