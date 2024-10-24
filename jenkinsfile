@@ -8,8 +8,8 @@ pipeline {
                 script {
                     // Define a map with key-value pairs
 
-                        myMap['name' ]  = 'Jenkins',
-                        myMap['version']  = '2.346.1',
+                        myMap['name' ]  = 'Jenkins'
+                        myMap['version']  = '2.346.1'
                         myMap['status' ]  = 'running'
 
                     // Access values from the map
