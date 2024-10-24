@@ -1,18 +1,24 @@
-node {
-    // Declare myMap at the top level
-    def accounts = [:]
-    def clusters = [:]
-    
+def call(){
+        Map accounts = [
+            "dev"     : "894486486413",
+            "qa"      : "894486486413",
+            "stage"   : "686989420008",
+            "pre-prod": "471112914376",
+            "prod"    : "814670874755"
+    ]
+
+    Map clusters = [
+            "dev"     : "ecsclusterdev",
+            "qa"      : "ecsclusterprod"
+    ]
+
     environment {
         AWS_DEFAULT_REGION = 'us-east-1'
 
-        accounts['dev'] = '179438333696'
-        accounts['prod'] = '179438333696'
-        clusters['dev'] = 'Devcluster'
-        clusters['prod'] = 'Experta_Prod'
+
         AWS_DEFAULT_REGION  = 'us-east-1'
-        AWS_ACCOUNT_ID = accounts.get(params.ENVIRONMENT)
-        ECS_CLUSTER = clusters.get(params.ENVIRONMENT)
+        AWS_ACCOUNT_ID = accounts.get('dev')
+        ECS_CLUSTER = clusters.get('dev')
         REPOSITORY_URI = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
         DOCKER_IMAGE_TAG_PROGRAM = "${REPOSITORY_URI}/program-service:latest"
 
@@ -22,15 +28,15 @@ node {
 
     }
 
-    stage('Initialize') {
-        // Populate the map
-
-        echo "AWS_ACCOUNT_ID: ${AWS_ACCOUNT_ID}"
-        echo "ECS_CLUSTER: ${ECS_CLUSTER}"
-    }
-
-    stage('Use Map Data') {
-        // Access myMap in the next stage
-        echo "Status: ${ECS_CLUSTER}"
+    timestamps{
+        ansiColor('xterm'){
+            node{
+                stage('Initialization'){
+                    sh """
+                    echo "AWS_ACCOUNT_ID = ${AWS_ACCOUNT_ID}"
+                    """
+                }
+            }
+        }
     }
 }
