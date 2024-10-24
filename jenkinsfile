@@ -1,17 +1,22 @@
     Map accounts = [
-            "dev"     : "179438333696",
-            "qa"      : "179438333696"
+            "DEV"        : "179438333696",
+            "Production" : "179438333696"
     ]
 
     Map clusters = [
-            "dev"     : "ecsclusterdev",
-            "qa"      : "ecsclusterprod"
+            "DEV"        : "Devcluster",
+            "Production" : "Experta_Prod"
     ]
 
 
 
 pipeline{
     agent any
+
+    parameters {
+        choice(name: 'ENVIRONMENT', choices: ['DEV', 'Production'], description: 'Environment')
+    }
+
     environment {
         AWS_ECR_REPO = "program-service"
         ECS_SERVICE = "Programservice"
@@ -42,14 +47,14 @@ pipeline{
             stage('print varaibles'){
                 steps{
                     sh """
-                    echo "AWS_ACCOUNT_ID = ${AWS_ACCOUNT_ID}"
-                    echo "ECS_CLUSTER    = ${ECS_CLUSTER}"
-                    echo "AWS_DEFAULT_REGION    = ${AWS_DEFAULT_REGION}"
-                    echo "REPOSITORY_URI    = ${REPOSITORY_URI}"
-                    echo "DOCKER_IMAGE_TAG_PROGRAM    = ${DOCKER_IMAGE_TAG_PROGRAM}"
-                    echo "SNS_TOPIC_ARN    = ${SNS_TOPIC_ARN}"
-                    echo "AWS_ECR_REPO    = ${AWS_ECR_REPO}"
-                    echo "ECS_SERVICE    = ${ECS_SERVICE}"
+                    echo "AWS_ACCOUNT_ID           = ${AWS_ACCOUNT_ID}"
+                    echo "ECS_CLUSTER              = ${ECS_CLUSTER}"
+                    echo "AWS_DEFAULT_REGION       = ${AWS_DEFAULT_REGION}"
+                    echo "REPOSITORY_URI           = ${REPOSITORY_URI}"
+                    echo "DOCKER_IMAGE_TAG_PROGRAM = ${DOCKER_IMAGE_TAG_PROGRAM}"
+                    echo "SNS_TOPIC_ARN            = ${SNS_TOPIC_ARN}"
+                    echo "AWS_ECR_REPO             = ${AWS_ECR_REPO}"
+                    echo "ECS_SERVICE              = ${ECS_SERVICE}"
                     """
                 }
             }
