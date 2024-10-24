@@ -48,7 +48,7 @@ pipeline{
                     """
                     script{
                         if (env.ENVIRONMENT == 'Production' && BRANCH_NAME != 'prod'){
-                            echo 'Invalid deployment options'
+                            echo 'Invalid deployment options ENVIRONMENT = ${env.ENVIRONMENT} & BRANCH_NAME = ${BRANCH_NAME}'
                         }
                     }
                 }
