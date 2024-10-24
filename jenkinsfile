@@ -4,11 +4,11 @@ pipeline{
     agent any
 
     environment {
-        Map accounts = [
+        def accounts = [
             "dev"     : "179438333696",
             "prod"    : "179438333696"
         ]
-        Map clusters = [
+        def clusters = [
             "dev"     : "Devcluster",
             "prod"    : "Experta_Prod"
         ]
