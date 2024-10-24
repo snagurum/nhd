@@ -37,6 +37,8 @@ pipeline{
             stage('Initialization'){
                 steps{
                     sh """
+                    
+                    set +x
                     echo "AWS_ACCOUNT_ID           = ${AWS_ACCOUNT_ID}"
                     echo "ECS_CLUSTER              = ${ECS_CLUSTER}"
                     echo "AWS_DEFAULT_REGION       = ${AWS_DEFAULT_REGION}"
@@ -45,6 +47,8 @@ pipeline{
                     echo "SNS_TOPIC_ARN            = ${SNS_TOPIC_ARN}"
                     echo "AWS_ECR_REPO             = ${AWS_ECR_REPO}"
                     echo "ECS_SERVICE              = ${ECS_SERVICE}"
+
+                    set -x
                     """
                     script{
                         if (env.ENVIRONMENT == 'Production' && BRANCH_NAME != 'prod'){
