@@ -1,6 +1,16 @@
 node {
     // Declare myMap at the top level
     def myMap = [:]
+    
+    environment {
+        AWS_DEFAULT_REGION = 'us-east-1'
+        AWS_ACCOUNT_ID = '179438333696'
+        REPOSITORY_URI = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
+        DOCKER_IMAGE_TAG_PROGRAM = "${REPOSITORY_URI}/program-service:latest"
+        AWS_ECR_REPO = "program-service"
+        ECS_SERVICE = "Programservice"
+        SNS_TOPIC_ARN = "arn:aws:sns:${AWS_DEFAULT_REGION}:${AWS_ACCOUNT_ID}:jenkins"
+    }
 
     stage('Initialize') {
         // Populate the map
