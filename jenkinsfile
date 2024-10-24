@@ -1,6 +1,7 @@
     Map accounts = [
             "dev"     : "179438333696",
             "qa"      : "179438333696"
+    ]
 
     Map clusters = [
             "dev"     : "ecsclusterdev",
