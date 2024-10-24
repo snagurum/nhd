@@ -24,6 +24,13 @@
                     SNS_TOPIC_ARN = "arn:aws:sns:${AWS_DEFAULT_REGION}:${AWS_ACCOUNT_ID}:jenkins"
 
                 }
+
+
+                tools {
+                    maven 'maven' // Define Maven tool installation
+                }
+
+
                 stages{
                         stage('Initialization'){
                             steps{
