@@ -4,14 +4,6 @@ pipeline{
     agent any
 
     environment {
-        def accounts = [
-            "dev"     : "179438333696",
-            "prod"    : "179438333696"
-        ]
-        def clusters = [
-            "dev"     : "Devcluster",
-            "prod"    : "Experta_Prod"
-        ]
         AWS_DEFAULT_REGION = 'us-east-1'
         AWS_ACCOUNT_ID = '179438333696'
         REPOSITORY_URI = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
@@ -39,6 +31,34 @@ pipeline{
     }
 
     stages {
+
+        stage('Initialization') {
+            steps {
+                def accounts = [
+                    "dev"     : "179438333696",
+                    "prod"    : "179438333696"
+                ]
+                def clusters = [
+                    "dev"     : "Devcluster",
+                    "prod"    : "Experta_Prod"
+                ]
+                AWS_ACCOUNT_ID = accounts.get(params.ENVIRONMENT)
+                ECS_CLUSTER = clusters.get(params.ENVIRONMENT)
+                script {
+                    sh """
+                    echo 'Hi there'
+                    echo 'params.BUILD_ENV = ${params.ENVIRONMENT}'
+                    echo 'BUILD_ENV        = ${ENVIRONMENT}'
+                    echo 'BUILD_NUMBER     = ${BUILD_NUMBER}'
+                    echo 'BRANCH_NAME     = ${BRANCH_NAME}'
+                    echo 'AWS_ACCOUNT_ID     = ${AWS_ACCOUNT_ID}'
+                    echo 'ECS_CLUSTER     = ${ECS_CLUSTER}'
+                    echo 'automatic trigger....'
+                    """
+                    // git branch: BRANCH_NAME, url: 'https://github.com/snagurum/nhd.git'
+                }
+            }
+        }
 
         stage('Git Checkout') {
             AWS_ACCOUNT_ID = accounts.get(params.ENVIRONMENT)
