@@ -17,9 +17,6 @@
                 agent any
                 environment {
                     AWS_DEFAULT_REGION = 'us-east-1'
-
-
-                    AWS_DEFAULT_REGION  = 'us-east-1'
                     AWS_ACCOUNT_ID = accounts.get('dev')
                     ECS_CLUSTER = clusters.get('dev')
                     REPOSITORY_URI = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
