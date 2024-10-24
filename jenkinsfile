@@ -1,40 +1,19 @@
-pipeline {
-    agent any
-                    def myMap = [:]
+node {
+    // Declare myMap at the top level
+    def myMap = [:]
 
-    stages {
-        stage('Initialize') {
-            steps {
-                script {
-                    // Define a map with key-value pairs
+    stage('Initialize') {
+        // Populate the map
+        myMap['name'] = 'Jenkins'
+        myMap['version'] = '2.346.1'
+        myMap['status'] = 'running'
 
-                        myMap['name' ]  = 'Jenkins'
-                        myMap['version']  = '2.346.1'
-                        myMap['status' ]  = 'running'
+        echo "Name: ${myMap.name}"
+        echo "Version: ${myMap.version}"
+    }
 
-                    // Access values from the map
-                    echo "Name: ${myMap.name}"
-                    echo "Version: ${myMap['version']}"
-                    echo "Status: ${myMap.status}"
-
-                    // Modify the map
-                    myMap['status'] = 'success'
-                    echo "Updated Status: ${myMap.status}"
-                }
-            }
-        }
-
-        stage('Add More Info') {
-            steps {
-                script {
-                    // Adding new key-value pairs to the map
-                    myMap['buildNumber'] = env.BUILD_NUMBER
-                    myMap['branch'] = env.GIT_BRANCH
-
-                    echo "Build Number: ${myMap['buildNumber']}"
-                    echo "Branch: ${myMap['branch']}"
-                }
-            }
-        }
+    stage('Use Map Data') {
+        // Access myMap in the next stage
+        echo "Status: ${myMap['status']}"
     }
 }
