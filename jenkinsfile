@@ -1,10 +1,6 @@
     Map accounts = [
-            "dev"     : "894486486413",
-            "qa"      : "894486486413",
-            "stage"   : "686989420008",
-            "pre-prod": "471112914376",
-            "prod"    : "814670874755"
-    ]
+            "dev"     : "179438333696",
+            "qa"      : "179438333696"
 
     Map clusters = [
             "dev"     : "ecsclusterdev",
@@ -32,6 +28,7 @@
                             steps{
                                 sh """
                                 echo "AWS_ACCOUNT_ID = ${AWS_ACCOUNT_ID}"
+                                echo "ECS_CLUSTER    = ${ECS_CLUSTER}"
                                 """
                         }}
                     }
