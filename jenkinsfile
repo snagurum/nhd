@@ -29,11 +29,9 @@
                 }
                 stages{
                         stage('Initialization'){
-                            scripts{
                                 sh """
                                 echo "AWS_ACCOUNT_ID = ${AWS_ACCOUNT_ID}"
                                 """
-                            }
                         }
                     }
             }
