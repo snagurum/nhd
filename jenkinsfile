@@ -27,12 +27,13 @@
                     SNS_TOPIC_ARN = "arn:aws:sns:${AWS_DEFAULT_REGION}:${AWS_ACCOUNT_ID}:jenkins"
 
                 }
-        
-                stage('Initialization'){
-                    script{
-                        sh """
-                        echo "AWS_ACCOUNT_ID = ${AWS_ACCOUNT_ID}"
-                        """
+                stages{
+                        stage('Initialization'){
+                            script{
+                                sh """
+                                echo "AWS_ACCOUNT_ID = ${AWS_ACCOUNT_ID}"
+                                """
+                            }
+                        }
                     }
-                }
             }
