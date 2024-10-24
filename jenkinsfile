@@ -36,6 +36,9 @@ pipeline{
     stages{
             stage('Initialization'){
                 steps{
+                    if (env.ENVIRONMENT == 'Production' && BRANCH_NAME != 'prod')
+                        return false
+                        
                     sh """
                     echo "AWS_ACCOUNT_ID           = ${AWS_ACCOUNT_ID}"
                     echo "ECS_CLUSTER              = ${ECS_CLUSTER}"
