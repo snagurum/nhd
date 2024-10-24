@@ -1,31 +1,40 @@
-node {
-    stage('Initialize') {
-        // Define a map with some key-value pairs
-        def myMap = [
-            'name'  : 'Jenkins',
-            'version': '2.346.1',
-            'status': 'running'
-        ]
+pipeline {
+    agent any
+                    def myMap = [
+                        'name'   : 'Jenkins',
+                        'version': '2.346.1',
+                        'status' : 'running'
+                    ]
+    stages {
+        stage('Initialize') {
+            steps {
+                script {
+                    // Define a map with key-value pairs
 
-        // Access values in the map
-        echo "Name: ${myMap['name']}"
-        echo "Version: ${myMap.version}"  // Alternative syntax to access map keys
-        echo "Status: ${myMap['status']}"
-        
-        // Modify a value
-        myMap['status'] = 'completed'
-        echo "Updated Status: ${myMap['status']}"
-    }
 
-    stage('Process') {
-        // Add a new entry to the map
-        def envDetails = [
-            'environment': 'production',
-            'region': 'us-east-1'
-        ]
-        myMap.putAll(envDetails)
+                    // Access values from the map
+                    echo "Name: ${myMap.name}"
+                    echo "Version: ${myMap['version']}"
+                    echo "Status: ${myMap.status}"
 
-        echo "Environment: ${myMap.environment}"
-        echo "Region: ${myMap['region']}"
+                    // Modify the map
+                    myMap['status'] = 'success'
+                    echo "Updated Status: ${myMap.status}"
+                }
+            }
+        }
+
+        stage('Add More Info') {
+            steps {
+                script {
+                    // Adding new key-value pairs to the map
+                    myMap['buildNumber'] = env.BUILD_NUMBER
+                    myMap['branch'] = env.GIT_BRANCH
+
+                    echo "Build Number: ${myMap['buildNumber']}"
+                    echo "Branch: ${myMap['branch']}"
+                }
+            }
+        }
     }
 }
