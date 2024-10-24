@@ -54,11 +54,17 @@ pipeline{
                         if (env.ENVIRONMENT == 'Production' && BRANCH_NAME != 'prod'){
                             echo 'Invalid deployment options ENVIRONMENT =' + env.ENVIRONMENT + '& BRANCH_NAME = ' + BRANCH_NAME
                             currentBuild.result = 'FAILURE'
-                            return 
+                            // return 
                         }
                     }
                 }
             }
+
+                        if (env.ENVIRONMENT == 'Production' && BRANCH_NAME != 'prod'){
+                            // echo 'Invalid deployment options ENVIRONMENT =' + env.ENVIRONMENT + '& BRANCH_NAME = ' + BRANCH_NAME
+                            // currentBuild.result = 'FAILURE'
+                            return 
+                        }
 
             stage('Git Checkout') {
                 steps{
