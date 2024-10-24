@@ -35,12 +35,12 @@ pipeline{
         stage('Initialization') {
             steps {
                 def accounts = [
-                    "dev"     : "179438333696",
-                    "prod"    : "179438333696"
+                    'dev'     : '179438333696',
+                    'prod'    : '179438333696'
                 ]
                 def clusters = [
-                    "dev"     : "Devcluster",
-                    "prod"    : "Experta_Prod"
+                    'dev'     : 'Devcluster',
+                    'prod'    : 'Experta_Prod'
                 ]
                 AWS_ACCOUNT_ID = accounts.get(params.ENVIRONMENT)
                 ECS_CLUSTER = clusters.get(params.ENVIRONMENT)
