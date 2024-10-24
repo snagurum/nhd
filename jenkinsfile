@@ -1,5 +1,4 @@
-def call(){
-        Map accounts = [
+    Map accounts = [
             "dev"     : "894486486413",
             "qa"      : "894486486413",
             "stage"   : "686989420008",
@@ -12,31 +11,28 @@ def call(){
             "qa"      : "ecsclusterprod"
     ]
 
-    environment {
-        AWS_DEFAULT_REGION = 'us-east-1'
 
 
-        AWS_DEFAULT_REGION  = 'us-east-1'
-        AWS_ACCOUNT_ID = accounts.get('dev')
-        ECS_CLUSTER = clusters.get('dev')
-        REPOSITORY_URI = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
-        DOCKER_IMAGE_TAG_PROGRAM = "${REPOSITORY_URI}/program-service:latest"
-
-        AWS_ECR_REPO = "program-service"
-        ECS_SERVICE = "Programservice"
-        SNS_TOPIC_ARN = "arn:aws:sns:${AWS_DEFAULT_REGION}:${AWS_ACCOUNT_ID}:jenkins"
-
-    }
-
-    timestamps{
-        ansiColor('xterm'){
             node{
+                environment {
+                    AWS_DEFAULT_REGION = 'us-east-1'
+
+
+                    AWS_DEFAULT_REGION  = 'us-east-1'
+                    AWS_ACCOUNT_ID = accounts.get('dev')
+                    ECS_CLUSTER = clusters.get('dev')
+                    REPOSITORY_URI = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
+                    DOCKER_IMAGE_TAG_PROGRAM = "${REPOSITORY_URI}/program-service:latest"
+
+                    AWS_ECR_REPO = "program-service"
+                    ECS_SERVICE = "Programservice"
+                    SNS_TOPIC_ARN = "arn:aws:sns:${AWS_DEFAULT_REGION}:${AWS_ACCOUNT_ID}:jenkins"
+
+                }
+        
                 stage('Initialization'){
                     sh """
                     echo "AWS_ACCOUNT_ID = ${AWS_ACCOUNT_ID}"
                     """
                 }
             }
-        }
-    }
-}
