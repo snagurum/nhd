@@ -11,8 +11,6 @@ public class DspTicker {
     private String tradeDetails ;
     private Boolean isSuccess = Boolean.FALSE;
 
-
-
     public DspTicker(String ticker, String companyInfo, String tradeInfo){
         this.ticker = ticker;
         this.companyDetails = companyInfo;

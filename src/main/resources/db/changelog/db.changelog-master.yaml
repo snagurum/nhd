@@ -1,0 +1,4 @@
+databaseChangeLog:
+  - includeAll:
+      path: db/changelog/1.0.0
+      # file: db/changelog/1.0.0/db.changelog-ticker.sql

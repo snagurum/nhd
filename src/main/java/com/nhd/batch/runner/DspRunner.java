@@ -5,6 +5,7 @@ import java.io.IOException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 
 import com.nhd.models.DspTicker;
 import com.nhd.batch.http.util.Constants;
@@ -12,6 +13,7 @@ import com.nhd.batch.http.util.CookieHandler;
 import com.nhd.batch.http.util.Http;
 import com.nhd.models.HttpResponse;
 
+@Service
 public class DspRunner {
 
     private static final Logger log = LoggerFactory.getLogger(DspRunner.class);

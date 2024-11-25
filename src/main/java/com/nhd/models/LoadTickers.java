@@ -1,11 +1,19 @@
 package com.nhd.models;
 
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Table;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.Data;
 
 @Data
-public class Ticker {
+@Table(name = "load_tickers", schema = "lt")
+public class LoadTickers {
+
+    @Id
+    private Long id;
+
     @JsonProperty("SYMBOL") 
     private String symbol;
 
