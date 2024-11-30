@@ -1,11 +1,9 @@
-package com.nhd.batch.http.util;
+package com.nhd.util;
 
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import com.nhd.batch.http.util.CookieHandler;
 
 public class CookieHandler {
  

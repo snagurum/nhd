@@ -1,23 +1,25 @@
 package com.nhd.batch.runner;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Collections;
+
+import com.nhd.util.Constants;
+import com.nhd.util.Http;
+import com.nhd.models.LoadTickers;
+import com.nhd.service.StockService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Configurable;
-import org.springframework.boot.autoconfigure.AutoConfigureOrder;
 
 import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
-import com.nhd.batch.http.util.Constants;
-import com.nhd.batch.http.util.Http;
-import com.nhd.dao.LoadTickersService;
-import com.nhd.models.LoadTickers;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Collections;
+
 
 @Component
 public class TickerRunner {
@@ -25,21 +27,20 @@ public class TickerRunner {
     private static final Logger log = LoggerFactory.getLogger(TickerRunner.class);
 
     @Autowired
-    private LoadTickersService loadTickersService ; 
+    private StockService stockService ;
 
 	public String getTickers() throws IOException {
         return Http.loadPage(Constants.NSE_TICKERS_URL, null, true).getResponseBody();
 	}
 
-    public List<LoadTickers>  run(){
+    public void run(){
         try{
             List<LoadTickers> tickers = this.loadObjectList(getTickers());
-            loadTickersService.saveAll(tickers );
-            System.out.println(" count  = " + tickers.size() );
+            stockService.saveAllLoadTickers(tickers );
+            log.info("loaded tickers count = {}", tickers.size());
         }catch (Exception e){
             log.error(e.getMessage(),e);
         }
-        return null;
     }
 
     public List<LoadTickers> loadObjectList(String dataString) {

@@ -1,6 +1,4 @@
-package com.nhd.dao;
-
-import java.util.List;
+package com.nhd.service.repo;
 
 import org.springframework.data.jdbc.repository.query.Modifying;
 import org.springframework.data.jdbc.repository.query.Query;
@@ -11,11 +9,7 @@ import com.nhd.models.LoadTickers;
 
 @Repository
     public interface LoadTickersRepository extends CrudRepository<LoadTickers, Long> {
-    
-        // public List<LoadTickers> getAll();
 
-        // public void saveAll(List<LoadTickers> tickers);
-    
         @Modifying
         @Query("truncate table  lt.load_tickers")
         public void truncateTable();
@@ -28,6 +22,5 @@ import com.nhd.models.LoadTickers;
         @Query("insert into nse.stocks(ticker, name, series, date_of_listing, paid_up_value, market_lot, isin_number, face_value, crd_date,upd_date,crd_by,upd_by)" +
                         "select symbol, company, series, date_of_listing::date, paid_up_value, market_lot, isin_number, face_value, localtimestamp,localtimestamp,'admin','admin' from lt.load_tickers where is_new is true")
         public void addNewStocks();
-
 
     }

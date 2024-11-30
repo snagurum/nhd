@@ -1,4 +1,4 @@
-package com.nhd.batch.http.util;
+package com.nhd.util;
 
 import java.io.BufferedReader;
 import java.io.IOException;
