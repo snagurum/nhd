@@ -44,6 +44,7 @@ public class Http {
 			in.close();
 			// System.out.println(response.toString());
 		} else {
+            log.error("ERROR RESPONSE {}", responseCode);
 			log.error("GET request did not work.");
 		}
         return response.toString();
