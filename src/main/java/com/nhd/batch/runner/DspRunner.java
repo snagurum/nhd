@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
 public class DspRunner {
@@ -86,10 +87,14 @@ public class DspRunner {
             log.info( "DSP tickers Remaining count = {}", dspTickersListSize);
             log.info( "DSP tickers Retrieved count = {}", dspTickersMapSize);
             log.info("Round = {}", rounds);
+            AtomicInteger failureCount = new AtomicInteger();
             dspTickers.stream().parallel().forEach(item -> {
                 LoadDspTickers dspTicker = getDspTickerInfo(item);
                 if (dspTicker != null)
                     dspTickerMap.put(item, getDspTickerInfo(item));
+                else {
+                    failureCount.getAndIncrement();
+                }
             });
 
             dspTickers.removeAll(dspTickerMap.keySet());
