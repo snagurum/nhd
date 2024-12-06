@@ -1,12 +1,16 @@
 package com.nhd.service;
 
+import java.sql.Timestamp;
 import java.util.List;
 
+import com.nhd.models.JobStatus;
 import com.nhd.models.LoadDspTickers;
+import com.nhd.service.repo.JobStatusRepository;
 import com.nhd.service.repo.LoadDspTickersRepository;
 import com.nhd.service.repo.LoadTickersRepository;
 import com.nhd.service.repo.StockRepository;
 import com.nhd.models.LoadTickers;
+import com.nhd.util.JobName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +26,9 @@ public class StockServiceImpl implements StockService {
 
     @Autowired
     LoadDspTickersRepository loadDspRepo;
+
+    @Autowired
+    JobStatusRepository jobStatusRepo;
 
     @Autowired
     StockRepository stockRepo;
@@ -48,6 +55,29 @@ public class StockServiceImpl implements StockService {
         loadDspRepo.saveAll(tickers);
     }
 
+//-------------------------------- logging
 
+    public JobStatus startJob(JobName jobName ) {
+        JobStatus job = new JobStatus();
+        job.setType(jobName.getJobType());
+        job.setName(jobName.toString());
+        job.setStartTime(new Timestamp(System.currentTimeMillis()));
+        job.setStatus("Started");
+        return jobStatusRepo.save(job);
+    }
 
+    public void endJob(JobStatus job) {
+        job.setEndTime(new Timestamp(System.currentTimeMillis()));
+        job.setStatus("Completed");
+        job.setDuration( (job.getEndTime().getTime()-job.getStartTime().getTime())/1000);
+        jobStatusRepo.save(job);
+    }
+
+    public List<JobStatus> getTodaysJobStatus(){
+        return jobStatusRepo.getTodaysJobStatus();
+    }
+
+    public List<JobStatus> getTodaysJobStatusByJobName(String jobName) {
+        return jobStatusRepo.getTodaysJobStatusByJobName(jobName);
+    }
 }

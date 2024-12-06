@@ -1,5 +1,6 @@
 package com.nhd.batch.runner;
 
+import com.nhd.models.JobStatus;
 import com.nhd.models.LoadDspTickers;
 import com.nhd.util.Constants;
 import com.nhd.util.CookieHandler;
@@ -7,10 +8,12 @@ import com.nhd.util.Http;
 import com.nhd.models.HttpResponse;
 import com.nhd.service.StockService;
 
+import com.nhd.util.JobName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StopWatch;
 
@@ -72,10 +75,16 @@ public class DspRunner {
 
     }
 
-    public void run(){
+    @Scheduled(cron="#{${loader.dsp_ticker.scheduler.cron}}")
+    public void runJob(){
+        List<JobStatus> jobs = stockService.getTodaysJobStatusByJobName(String.valueOf(JobName.DSP_TICKER));
+        if(!jobs.isEmpty()) {
+            log.info("Job {} has already been started ....",jobs.get(0));
+            return;
+        }
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
-//        List<String> dspTickers = stockService.getActiveTickers().subList(0,10);
+        JobStatus audit = stockService.startJob(JobName.DSP_TICKER);
         List<String> dspTickers = stockService.getActiveTickers();
         Map<String, LoadDspTickers> dspTickerMap = new HashMap<>();
 
@@ -84,8 +93,7 @@ public class DspRunner {
         while( rounds < totalRounds && !allFailed && !dspTickers.isEmpty()) {
             Integer dspTickersListSize = dspTickers.size();
             Integer dspTickersMapSize = dspTickerMap.keySet().size();
-            log.info( "DSP tickers Remaining count = {}", dspTickersListSize);
-            log.info( "DSP tickers Retrieved count = {}", dspTickersMapSize);
+            log.info( "DSP tickers Remaining = {},  Retrieved = {}", dspTickersListSize, dspTickersMapSize);
             log.info("Round = {}", rounds);
             AtomicInteger failureCount = new AtomicInteger();
             dspTickers.stream().parallel().forEach(item -> {
@@ -106,7 +114,10 @@ public class DspRunner {
         log.trace(" DSP Tickers data : {}",dspTickerMap );
         stopWatch.stop();
         stockService.saveAllLoadDspTickers(dspTickerMap.values().stream().toList());
-        log.info(" DspTickers retrieved = {}, time = {}", dspTickerMap.keySet().size(),stopWatch.getTotalTimeSeconds());
+        log.info(" DspTickers retrieved = {}, time = {}", dspTickerMap.keySet().size(),stopWatch.getTotalTimeSeconds()/60);
+        audit.setSuccessCount(dspTickerMap.values().size());
+        audit.setFailureCount(dspTickers.size());
+        stockService.endJob(audit);
     }
 
 

@@ -10,7 +10,7 @@ import java.util.List;
 @Repository
 public interface StockRepository extends CrudRepository<Stock, Long> {
 
-    @Query("select ticker from nse.stocks s where s.active is true")
+    @Query("select ticker from lt.stocks s where s.active is true")
     List<String> getActiveTickers();
 
 }

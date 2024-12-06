@@ -1,11 +1,13 @@
 package com.nhd.batch.runner;
 
 
+import com.nhd.models.JobStatus;
 import com.nhd.util.Constants;
 import com.nhd.util.Http;
 import com.nhd.models.LoadTickers;
 import com.nhd.service.StockService;
 
+import com.nhd.util.JobName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,6 +16,7 @@ import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -33,11 +36,20 @@ public class TickerRunner {
         return Http.loadPage(Constants.NSE_TICKERS_URL, null, true).getResponseBody();
 	}
 
-    public void run(){
+    @Scheduled( cron = "#{${loader.ticker.scheduler.cron}}")
+    public void runJob(){
         try{
+            List<JobStatus> jobs = stockService.getTodaysJobStatusByJobName(String.valueOf(JobName.TICKER));
+            if(!jobs.isEmpty()) {
+                log.info("Job {} has already been started ....",jobs.get(0));
+                return;
+            }
+            JobStatus audit = stockService.startJob(JobName.TICKER);
             List<LoadTickers> tickers = this.loadObjectList(getTickers());
             stockService.saveAllLoadTickers(tickers );
             log.info("loaded tickers count = {}", tickers.size());
+            audit.setSuccessCount(tickers.size());
+            stockService.endJob(audit);
         }catch (Exception e){
             log.error(e.getMessage(),e);
         }
@@ -58,10 +70,9 @@ public class TickerRunner {
                 .build()
                 .withHeader();
             MappingIterator<LoadTickers> it = csvMapper.readerFor(LoadTickers.class).with(schema).readValues(dataString);
-            List<LoadTickers> tickers = it.readAll();
-            return tickers;
+            return it.readAll();
         } catch (Exception e) {
-            log.error("Error occurred while loading object list from file " + dataString, e);
+            log.error("Error occurred while loading object list from file {}", dataString, e);
             return Collections.emptyList();
         }
     }
