@@ -15,7 +15,11 @@ import org.springframework.core.annotation.Order;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import com.nhd.batch.runner.TickerRunner;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
+@EnableScheduling
 @SpringBootApplication
 public class NhdApplication {
 	private static final Logger log = LoggerFactory.getLogger(NhdApplication.class);
@@ -31,21 +35,31 @@ public class NhdApplication {
 		SpringApplication.run(NhdApplication.class, args);
 	}
 
-	@Bean
-	@Order(1)
-	public CommandLineRunner commandLineRunner(ApplicationContext ctx) {
-		return args -> {
-			tickerRunner.run();
-		};
-	}
+
+//	@Bean
+//	public TaskScheduler concurrentTaskScheduler(){
+//		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+//		taskScheduler.setPoolSize(Integer.valueOf(3));
+//		//taskScheduler.setPoolSize(Integer.valueOf("${app.thread.size}"));
+//		return taskScheduler;
+//	}
 
 
-	@Bean
-	@Order(2)
-	public CommandLineRunner commandLineRunner1(ApplicationContext ctx) {
-		return args -> {
-			dspTickerRunner.run();
-		};
-	}
+//	@Bean
+//	@Order(1)
+//	public CommandLineRunner commandLineRunner(ApplicationContext ctx) {
+//		return args -> {
+//			tickerRunner.run();
+//		};
+//	}
+//
+//
+//	@Bean
+//	@Order(2)
+//	public CommandLineRunner commandLineRunner1(ApplicationContext ctx) {
+//		return args -> {
+//			dspTickerRunner.run();
+//		};
+//	}
 
 }

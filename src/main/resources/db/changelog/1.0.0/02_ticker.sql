@@ -2,8 +2,6 @@
 -- deallocate all;
 
 
-create schema lt;      -- lt  = load_tables
-create schema nse;
 
 
 create table lt.LOAD_TICKERS(
@@ -19,7 +17,7 @@ create table lt.LOAD_TICKERS(
     is_new            boolean default false
 );
 
-create table nse.STOCKS(
+create table lt.STOCKS(
     id                integer primary key generated always as identity,
     ticker           varchar(50),        -- SYMBOL
     name             varchar(200),       -- NAME OF COMPANY
@@ -36,10 +34,3 @@ create table nse.STOCKS(
     upd_by           varchar(20)
 ) ;
 
-create table lt.load_dsp_tickers(
-    id               integer primary key generated always as identity,
-    ticker           varchar(50),
-    price_date       date default current_date,
-    company_details  text,
-    trade_details    text
-);

@@ -31,7 +31,7 @@ public class Http {
     public static String readResponseBody(HttpURLConnection con, Boolean appendNewLine) throws IOException {
         StringBuffer response = null;
         int responseCode = con.getResponseCode();
-        if (responseCode == HttpURLConnection.HTTP_OK) { // success
+        if (responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_UNAUTHORIZED) { // success
 			BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
 			String inputLine;
 			response = new StringBuffer();
@@ -44,8 +44,7 @@ public class Http {
 			in.close();
 			// System.out.println(response.toString());
 		} else {
-            log.error("ERROR RESPONSE {}", responseCode);
-			log.error("GET request did not work.");
+			log.error("GET request did not work. Response Code = {}", responseCode);
 		}
         return response.toString();
     }
