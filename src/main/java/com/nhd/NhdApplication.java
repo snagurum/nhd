@@ -2,6 +2,7 @@ package com.nhd;
 
 import java.util.Arrays;
 
+import com.nhd.batch.runner.BulkRunner;
 import com.nhd.batch.runner.DspRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +31,8 @@ public class NhdApplication {
 	@Autowired
 	DspRunner dspTickerRunner;
 
+	@Autowired
+	BulkRunner bulkTickerRunner;
 
 	public static void main(String[] args) {
 		SpringApplication.run(NhdApplication.class, args);
@@ -61,5 +64,13 @@ public class NhdApplication {
 //			dspTickerRunner.run();
 //		};
 //	}
+//
 
+	@Bean
+	@Order(3)
+	public CommandLineRunner commandLineRunner1(ApplicationContext ctx) {
+		return args -> {
+			bulkTickerRunner.runJob();
+		};
+	}
 }

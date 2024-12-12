@@ -10,6 +10,7 @@ import com.nhd.service.repo.LoadDspTickersRepository;
 import com.nhd.service.repo.LoadTickersRepository;
 import com.nhd.service.repo.StockRepository;
 import com.nhd.models.LoadTickers;
+import com.nhd.models.Stock;
 import com.nhd.util.JobName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +35,7 @@ public class StockServiceImpl implements StockService {
     StockRepository stockRepo;
 
 
-    public List<String> getActiveTickers(){
+    public List<Stock> getActiveTickers(){
         return stockRepo.getActiveTickers();
     }
 

@@ -1,4 +1,4 @@
-package com.nhd.util;
+package com.nhd.util.http;
 
 
 import java.util.HashMap;
@@ -12,10 +12,10 @@ public class CookieHandler {
     public void saveCookies(Map<String,List<String>> headers){
         List<String> cookieList = headers.get("Set-Cookie");
         cookieList.forEach(e->{
-            cookiesMap.put(
-                e.substring(0,e.indexOf("="))
-                ,e.substring(e.indexOf("=")+1 ,e.indexOf(";"))
-            );
+            String key = e.substring(0,e.indexOf("="));
+            String value = e.substring(e.indexOf("=")+1 ,e.indexOf(";"));
+            if(value != null && !"".equals(value.trim()))
+                cookiesMap.put(key, value);
         });
     }
 
@@ -30,10 +30,15 @@ public class CookieHandler {
         return temp.toString();
     }
 
-    public void printCookies(){
+    
+
+    public String printCookies(){
+        String pretext = "\n\t***\t     ";
+        StringBuffer buffer = new StringBuffer();
         cookiesMap.keySet().forEach(e->{
-            System.out.println(e + " = " + cookiesMap.get(e));
+            buffer.append(pretext + e + " = " + cookiesMap.get(e));
         });
+        return buffer.toString();
     }
 
     public Map<String, String> getCookiesMap(){

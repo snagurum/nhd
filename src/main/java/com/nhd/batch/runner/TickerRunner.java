@@ -3,11 +3,12 @@ package com.nhd.batch.runner;
 
 import com.nhd.models.JobStatus;
 import com.nhd.util.Constants;
-import com.nhd.util.Http;
 import com.nhd.models.LoadTickers;
 import com.nhd.service.StockService;
 
 import com.nhd.util.JobName;
+import com.nhd.util.http.Http;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +34,7 @@ public class TickerRunner {
     private StockService stockService ;
 
 	public String getTickers() throws IOException {
-        return Http.loadPage(Constants.NSE_TICKERS_URL, null, true).getResponseBody();
+        return Http.loadPage(Constants.NSE_TICKERS_URL, null).getResponseBody();
 	}
 
     @Scheduled( cron = "#{${loader.ticker.scheduler.cron}}")

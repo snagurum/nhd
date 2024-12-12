@@ -2,13 +2,15 @@ package com.nhd.batch.runner;
 
 import com.nhd.models.JobStatus;
 import com.nhd.models.LoadDspTickers;
+import com.nhd.models.Stock;
 import com.nhd.util.Constants;
-import com.nhd.util.CookieHandler;
-import com.nhd.util.Http;
 import com.nhd.models.HttpResponse;
 import com.nhd.service.StockService;
 
 import com.nhd.util.JobName;
+import com.nhd.util.http.CookieHandler;
+import com.nhd.util.http.Http;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,29 +36,33 @@ public class DspRunner {
 
     private Integer totalRounds = 5;
 
-    public void homePage(String ticker, CookieHandler cookies) throws IOException{
-        Http.loadPage(Constants.NSE_HOME_URL, cookies, true);
+    public void homePage(Stock ticker, CookieHandler cookies) throws IOException{
+        log.info(" ====>>>> homePage");
+        Http.loadPage(Constants.NSE_HOME_URL, cookies);
     }
 
-    public void tickerPage(String ticker, CookieHandler cookies) throws IOException{
+    public void tickerPage(Stock ticker, CookieHandler cookies) throws IOException{
+        log.info(" ====>>>> tickerPage");
         Http.loadPage(
-            Constants.NSE_HOME_URL+"/get-quotes/equity?symbol=" + ticker
-            , cookies, true);
+            Constants.NSE_HOME_URL+"/get-quotes/equity?symbol=" + ticker.getTicker()
+            , cookies);
     }
 
-    public HttpResponse tickerDetails(String ticker, CookieHandler cookies) throws IOException{
+    public HttpResponse tickerDetails(Stock ticker, CookieHandler cookies) throws IOException{
+        log.info(" ====>>>> tickerDetails");
         return Http.loadPage(
-            Constants.NSE_HOME_URL+"/api/quote-equity?symbol=" + ticker
-            , cookies, true);
+            Constants.NSE_HOME_URL+"/api/quote-equity?symbol=" + ticker.getTicker()
+            , cookies);
     }
 
-    public HttpResponse tickerTradeDetails(String ticker, CookieHandler cookies) throws IOException{
+    public HttpResponse tickerTradeDetails(Stock ticker, CookieHandler cookies) throws IOException{
+        log.info(" ====>>>> tickerTradeDetails");
         return Http.loadPage(
-            Constants.NSE_HOME_URL+"/api/quote-equity?symbol="+ ticker + "&section=trade_info"
-            , cookies, true);
+            Constants.NSE_HOME_URL+"/api/quote-equity?symbol="+ ticker.getTicker() + "&section=trade_info"
+            , cookies);
     }
 
-    public LoadDspTickers getDspTickerInfo(String ticker){
+    public LoadDspTickers getDspTickerInfo(Stock ticker){
         try{
             CookieHandler cookies = new CookieHandler() ;
             homePage(ticker, cookies);
@@ -64,12 +70,12 @@ public class DspRunner {
             String companyDetails = tickerDetails(ticker, cookies).getResponseBody();
             String tradeDetails = tickerTradeDetails(ticker, cookies).getResponseBody();
             LoadDspTickers loadDspTickers = new LoadDspTickers();
-            loadDspTickers.setTicker(ticker);
+            loadDspTickers.setTicker(ticker.getTicker());
             loadDspTickers.setCompanyDetails(companyDetails);
             loadDspTickers.setTradeDetails(tradeDetails);
             return loadDspTickers;
         }catch(Exception e){
-            log.error(ticker,e.getMessage(), e);
+            log.error(ticker.getTicker(),e.getMessage(), e);
             return null;
         }
 
@@ -82,42 +88,35 @@ public class DspRunner {
             log.info("Job {} has already been started ....",jobs.get(0));
             return;
         }
-        StopWatch stopWatch = new StopWatch();
-        stopWatch.start();
+
         JobStatus audit = stockService.startJob(JobName.DSP_TICKER);
-        List<String> dspTickers = stockService.getActiveTickers();
-        Map<String, LoadDspTickers> dspTickerMap = new HashMap<>();
+        List<Stock> remainingTickers = stockService.getActiveTickers();
+        Map<String, LoadDspTickers> processedTickers = new HashMap<>();
 
         int rounds = 0;
         boolean allFailed = false;
-        while( rounds < totalRounds && !allFailed && !dspTickers.isEmpty()) {
-            Integer dspTickersListSize = dspTickers.size();
-            Integer dspTickersMapSize = dspTickerMap.keySet().size();
-            log.info( "DSP tickers Remaining = {},  Retrieved = {}", dspTickersListSize, dspTickersMapSize);
-            log.info("Round = {}", rounds);
+        while( rounds < totalRounds && !allFailed && !remainingTickers.isEmpty()) {
+            log.info( "DSP tickers loader: Round = {}, Remaining = {},  Retrieved = {}", rounds,remainingTickers.size(), processedTickers.keySet().size());
             AtomicInteger failureCount = new AtomicInteger();
-            dspTickers.stream().parallel().forEach(item -> {
+            remainingTickers.stream().parallel().forEach(item -> {
                 LoadDspTickers dspTicker = getDspTickerInfo(item);
                 if (dspTicker != null)
-                    dspTickerMap.put(item, getDspTickerInfo(item));
+                    processedTickers.put(item.getTicker(), dspTicker);
                 else {
                     failureCount.getAndIncrement();
                 }
             });
 
-            dspTickers.removeAll(dspTickerMap.keySet());
-            log.info( "DSP tickers Currently Retrieved count = {}", dspTickerMap.keySet().size());
-
+            remainingTickers.removeAll(processedTickers.keySet());
+            log.info( "DSP tickers Currently Retrieved count = {}", processedTickers.keySet().size());
             rounds++;
         }
 
-        log.trace(" DSP Tickers data : {}",dspTickerMap );
-        stopWatch.stop();
-        stockService.saveAllLoadDspTickers(dspTickerMap.values().stream().toList());
-        log.info(" DspTickers retrieved = {}, time = {}", dspTickerMap.keySet().size(),stopWatch.getTotalTimeSeconds()/60);
-        audit.setSuccessCount(dspTickerMap.values().size());
-        audit.setFailureCount(dspTickers.size());
+        stockService.saveAllLoadDspTickers(processedTickers.values().stream().toList());
+        audit.setSuccessCount(processedTickers.values().size());
+        audit.setFailureCount(remainingTickers.size());
         stockService.endJob(audit);
+        log.info(" DspTickers retrieved = {}, time = {}", processedTickers.keySet().size(),audit.getDuration());
     }
 
 

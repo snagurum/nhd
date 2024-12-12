@@ -4,13 +4,14 @@ import java.util.List;
 
 import com.nhd.models.LoadDspTickers;
 import com.nhd.models.LoadTickers;
+import com.nhd.models.Stock;
 import com.nhd.models.JobStatus;
 import com.nhd.util.JobName;
 
 
 public interface StockService{
 
-        List<String> getActiveTickers();
+        List<Stock> getActiveTickers();
 
         void saveAllLoadTickers(List<LoadTickers> tickers);
 

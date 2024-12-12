@@ -1,9 +1,11 @@
 package com.nhd.controller;
 
 
+import com.nhd.batch.runner.BulkRunner;
 import com.nhd.batch.runner.DspRunner;
 import com.nhd.batch.runner.TickerRunner;
 import com.nhd.models.JobStatus;
+import com.nhd.models.LoadBulkTickers;
 import com.nhd.models.LoadDspTickers;
 import com.nhd.service.StockService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +19,9 @@ public class JobStatusController {
 
 	@Autowired
 	DspRunner dspTickerRunner;
+
+	@Autowired
+	BulkRunner bulkTickerRunner;
 
 	@Autowired
 	TickerRunner tickerRunner;
@@ -50,9 +55,14 @@ public class JobStatusController {
 		dspTickerRunner.runJob();
 	}
 
-	@GetMapping("/testing")
-	public LoadDspTickers index1() {
+	@GetMapping("/test/dsp")
+	public LoadDspTickers dspTest() {
 		return dspTickerRunner.getDspTickerInfo("INFY");
+	}
+
+	@GetMapping("/test/bulk")
+	public String bulkTest() {
+		return bulkTickerRunner.getBulkTickerData("INFY","01-01-2023","01-12-2023");
 	}
 
 }
