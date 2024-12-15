@@ -37,26 +37,26 @@ public class DspRunner {
     private Integer totalRounds = 5;
 
     public void homePage(Stock ticker, CookieHandler cookies) throws IOException{
-        log.info(" ====>>>> homePage");
+        log.debug(" ====>>>> homePage");
         Http.loadPage(Constants.NSE_HOME_URL, cookies);
     }
 
     public void tickerPage(Stock ticker, CookieHandler cookies) throws IOException{
-        log.info(" ====>>>> tickerPage");
+        log.debug(" ====>>>> tickerPage");
         Http.loadPage(
             Constants.NSE_HOME_URL+"/get-quotes/equity?symbol=" + ticker.getTicker()
             , cookies);
     }
 
     public HttpResponse tickerDetails(Stock ticker, CookieHandler cookies) throws IOException{
-        log.info(" ====>>>> tickerDetails");
+        log.debug(" ====>>>> tickerDetails");
         return Http.loadPage(
             Constants.NSE_HOME_URL+"/api/quote-equity?symbol=" + ticker.getTicker()
             , cookies);
     }
 
     public HttpResponse tickerTradeDetails(Stock ticker, CookieHandler cookies) throws IOException{
-        log.info(" ====>>>> tickerTradeDetails");
+        log.debug(" ====>>>> tickerTradeDetails");
         return Http.loadPage(
             Constants.NSE_HOME_URL+"/api/quote-equity?symbol="+ ticker.getTicker() + "&section=trade_info"
             , cookies);

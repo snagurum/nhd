@@ -13,7 +13,8 @@ create table lt.load_bulk_tickers(
     low52             varchar,
     volume             varchar,
     value             varchar,
-    no_of_trades             varchar
+    no_of_trades             varchar,
+    ltp               varchar
 );
 
-alter table lt.stocks add column(history_loaded boolean default false);
+alter table lt.stocks add column history_loaded boolean default false;

@@ -4,8 +4,10 @@ import java.sql.Timestamp;
 import java.util.List;
 
 import com.nhd.models.JobStatus;
+import com.nhd.models.LoadBulkTickers;
 import com.nhd.models.LoadDspTickers;
 import com.nhd.service.repo.JobStatusRepository;
+import com.nhd.service.repo.LoadBulkTickersRepository;
 import com.nhd.service.repo.LoadDspTickersRepository;
 import com.nhd.service.repo.LoadTickersRepository;
 import com.nhd.service.repo.StockRepository;
@@ -34,11 +36,21 @@ public class StockServiceImpl implements StockService {
     @Autowired
     StockRepository stockRepo;
 
+    @Autowired
+    LoadBulkTickersRepository loadBulkTickersRepo;
+
 
     public List<Stock> getActiveTickers(){
         return stockRepo.getActiveTickers();
     }
 
+    public List<Stock> noHistoryStocks(){
+        return stockRepo.noHistoryStocks();
+    }
+
+    public Stock saveStock(Stock stock){
+        return stockRepo.save(stock);
+    }
 
     public void saveAllLoadTickers(List<LoadTickers> tickers){
 
@@ -59,9 +71,14 @@ public class StockServiceImpl implements StockService {
 //-------------------------------- logging
 
     public JobStatus startJob(JobName jobName ) {
+        return startJobWithComment(jobName,null);
+    }
+
+    public JobStatus startJobWithComment(JobName jobName,String comment){
         JobStatus job = new JobStatus();
         job.setType(jobName.getJobType());
         job.setName(jobName.toString());
+        job.setComments(comment);
         job.setStartTime(new Timestamp(System.currentTimeMillis()));
         job.setStatus("Started");
         return jobStatusRepo.save(job);
@@ -80,5 +97,9 @@ public class StockServiceImpl implements StockService {
 
     public List<JobStatus> getTodaysJobStatusByJobName(String jobName) {
         return jobStatusRepo.getTodaysJobStatusByJobName(jobName);
+    }
+
+    public void saveAllLoadBulkTickers(List<LoadBulkTickers> tickers){
+        loadBulkTickersRepo.saveAll(tickers);
     }
 }

@@ -14,4 +14,6 @@ public interface StockRepository extends CrudRepository<Stock, Long> {
     @Query("select s.* from lt.stocks s where s.active is true")
     List<Stock> getActiveTickers();
 
+    @Query("select s.* from lt.stocks s where s.history_loaded is false")
+    List<Stock> noHistoryStocks();
 }
