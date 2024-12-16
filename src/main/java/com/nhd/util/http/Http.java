@@ -72,7 +72,10 @@ public class Http {
     public static String readResponseBody(HttpURLConnection con) throws IOException {
         StringBuffer response = null;
         int responseCode = con.getResponseCode();
-        if (responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_UNAUTHORIZED) { // success
+        if (responseCode == HttpURLConnection.HTTP_OK 
+            || responseCode == HttpURLConnection.HTTP_UNAUTHORIZED
+            // || responseCode == HttpURLConnection.HTTP_BAD_REQUEST
+            ) { // success
 			BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
 			String inputLine;
 			response = new StringBuffer();

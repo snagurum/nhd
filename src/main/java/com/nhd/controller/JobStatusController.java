@@ -11,6 +11,7 @@ import com.nhd.models.Stock;
 import com.nhd.service.StockService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.sql.Date;
@@ -70,10 +71,20 @@ public class JobStatusController {
 	}
 
 	@GetMapping("/test/bulk")
-	public List<LoadBulkTickers> bulkTest() {
+	public List<LoadBulkTickers> bulkTest(@RequestParam String ticker,@RequestParam String dol) {
 		Stock stock = new Stock();
-		stock.setTicker("INFY");
-		stock.setDateOfListing(Date.valueOf("2014-08-08"));
+		if(null == ticker || ticker.isEmpty()){
+			// stock.setTicker("INFY");
+			// stock.setDateOfListing(Date.valueOf("2024-08-08"));
+			// stock.setTicker("ZOMATO");
+			// stock.setDateOfListing(Date.valueOf("2024-01-09"));
+			stock.setTicker("TATATECH");
+			stock.setDateOfListing(Date.valueOf("2023-01-09"));
+		}
+		else{ 
+			stock.setTicker( ticker);
+			stock.setDateOfListing(Date.valueOf(dol));
+		}
 		return bulkTickerRunner.getAllBulkTickerData(stock);
 	}
 
