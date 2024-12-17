@@ -24,12 +24,5 @@ public interface StockService{
 
         void saveAllLoadBulkTickers(List<LoadBulkTickers> tickers);
 
-        JobStatus startJob(JobName name);
-        JobStatus startJobWithComment(JobName name,String comment);
 
-        void endJob(JobStatus job);
-
-        List<JobStatus> getTodaysJobStatus();
-
-        List<JobStatus> getTodaysJobStatusByJobName(String jobName);
 }

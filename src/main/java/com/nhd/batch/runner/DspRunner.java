@@ -3,6 +3,7 @@ package com.nhd.batch.runner;
 import com.nhd.models.JobStatus;
 import com.nhd.models.LoadDspTickers;
 import com.nhd.models.Stock;
+import com.nhd.service.AuditService;
 import com.nhd.util.Constants;
 import com.nhd.models.HttpResponse;
 import com.nhd.service.StockService;
@@ -25,6 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 @Component
 public class DspRunner {
@@ -33,6 +35,9 @@ public class DspRunner {
 
     @Autowired
     private StockService stockService ;
+
+    @Autowired
+    private AuditService auditService ;
 
     private Integer totalRounds = 5;
 
@@ -83,39 +88,43 @@ public class DspRunner {
 
     @Scheduled(cron="#{${loader.dsp_ticker.scheduler.cron}}")
     public void runJob(){
-        List<JobStatus> jobs = stockService.getTodaysJobStatusByJobName(String.valueOf(JobName.DSP_TICKER));
+        List<JobStatus> jobs = auditService.getTodaysJobStatusByJobName(String.valueOf(JobName.DSP_TICKER));
         if(!jobs.isEmpty()) {
             log.info("Job {} has already been started ....",jobs.get(0));
             return;
         }
 
-        JobStatus audit = stockService.startJob(JobName.DSP_TICKER);
-        List<Stock> remainingTickers = stockService.getActiveTickers();
+        JobStatus audit = auditService.startJob(JobName.DSP_TICKER);
+        List<Stock> remainingStocks = stockService.getActiveTickers();
         Map<String, LoadDspTickers> processedTickers = new HashMap<>();
 
         int rounds = 0;
         boolean allFailed = false;
-        while( rounds < totalRounds && !allFailed && !remainingTickers.isEmpty()) {
-            log.info( "DSP tickers loader: Round = {}, Remaining = {},  Retrieved = {}", rounds,remainingTickers.size(), processedTickers.keySet().size());
+        while( rounds < totalRounds && !allFailed && !remainingStocks.isEmpty()) {
+            log.info( "DSP Loader Start: Round = {}, Remaining = {},  Retrieved = {}", rounds,remainingStocks.size(), processedTickers.keySet().size());
             AtomicInteger failureCount = new AtomicInteger();
-            remainingTickers.stream().parallel().forEach(item -> {
+            remainingStocks.stream().parallel().forEach(item -> {
                 LoadDspTickers dspTicker = getDspTickerInfo(item);
-                if (dspTicker != null)
+                if (dspTicker != null) {
                     processedTickers.put(item.getTicker(), dspTicker);
+                    if(processedTickers.size()%100 == 0){
+                        log.info("DSP ticker processed count = {}",processedTickers.size());
+                    }
+                }
                 else {
                     failureCount.getAndIncrement();
                 }
             });
-
-            remainingTickers.removeAll(processedTickers.keySet());
-            log.info( "DSP tickers Currently Retrieved count = {}", processedTickers.keySet().size());
+            List<String> tickerNames0 = processedTickers.keySet().stream().toList();
+            remainingStocks = remainingStocks.stream().filter( e -> tickerNames0.contains(e.getTicker())).toList();
+            log.info( "DSP Loader End: Round = {}, Remaining = {},  Retrieved = {}", rounds,remainingStocks.size(), processedTickers.keySet().size());
             rounds++;
         }
 
         stockService.saveAllLoadDspTickers(processedTickers.values().stream().toList());
         audit.setSuccessCount(processedTickers.values().size());
-        audit.setFailureCount(remainingTickers.size());
-        stockService.endJob(audit);
+        audit.setFailureCount(remainingStocks.size());
+        auditService.endJob(audit);
         log.info(" DspTickers retrieved = {}, time = {}", processedTickers.keySet().size(),audit.getDuration());
     }
 

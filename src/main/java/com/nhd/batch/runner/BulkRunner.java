@@ -15,6 +15,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
+import com.nhd.service.AuditService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +47,9 @@ public class BulkRunner {
 
     @Autowired
     private StockService stockService ;
+
+    @Autowired
+    private AuditService auditService ;
 
     private static Map<String,String> additionalHeaders = new HashMap<>();
     
@@ -89,13 +93,18 @@ public class BulkRunner {
 
     
     public HttpResponse tickerHistoricalPriceDetails(Stock ticker, CookieHandler cookies,String startDate, String endDate) throws IOException{
-        log.debug("tickerHistoricalPriceDetails {}",ticker.getTicker());
-        return Http.loadPage(
-            tickerHistoricalPriceDetailsUrl
+        log.debug("tickerHistoricalPriceDetails {} start: url={}",ticker.getTicker(),                tickerHistoricalPriceDetailsUrl
                 .replaceFirst("__ticker__", ticker.getTicker())
                 .replaceFirst("__startDate__", startDate)
-                .replaceFirst("__endDate__", endDate)
-            , cookies,additionalHeaders);
+                .replaceFirst("__endDate__", endDate));
+        HttpResponse httpResponse =Http.loadPage(
+                tickerHistoricalPriceDetailsUrl
+                        .replaceFirst("__ticker__", ticker.getTicker())
+                        .replaceFirst("__startDate__", startDate)
+                        .replaceFirst("__endDate__", endDate)
+                , cookies,additionalHeaders);
+        log.debug("tickerHistoricalPriceDetails {} end",ticker.getTicker());
+        return httpResponse;
     }
 
 
@@ -193,45 +202,38 @@ public class BulkRunner {
     // @Scheduled(cron="#{${loader.bulk_ticker.scheduler.cron}}")
     public void runJob(){
 
-        // List<Stock> temp = stockService.noHistoryStocks();
-        // if(temp == null || temp.isEmpty()) {
-        //     log.info("No ticker left for Bulk load");
-        //     return;
-        // }
-        // List<Stock> remainingTickers = new ArrayList<>();
-        // remainingTickers.add(temp.get(0)); temp.remove(0);
-        // remainingTickers.add(temp.get(1)); temp.remove(0);
-        // remainingTickers.add(temp.get(2)); temp.remove(0);
-        // remainingTickers.add(temp.get(3)); temp.remove(0);
-        // remainingTickers.add(temp.get(4)); temp.remove(0);
-        List<Stock> remainingTickers = stockService.noHistoryStocks();
+        List<Stock> remainingStocks = stockService.noHistoryStocks();
         Map<String, List<LoadBulkTickers>> processedTickers = new HashMap<>();
 
         int rounds = 0;
         boolean allFailed = false;
-        JobStatus audit = stockService.startJobWithComment(JobName.BSP_TICKER,remainingTickers.stream().map(Stock::getTicker).collect(Collectors.joining()));
-        while( rounds < totalRounds && !allFailed && !remainingTickers.isEmpty()) {
-            log.info( "DSP tickers loader: Round = {}, Remaining = {},  Retrieved = {}", rounds,remainingTickers.size(), processedTickers.keySet().size());
+        JobStatus audit = auditService.startJob(JobName.BSP_TICKER);
+
+        while( rounds < totalRounds && !allFailed && !remainingStocks.isEmpty()) {
+            log.info( "BSP Loader  Start: Round-{}, Remaining = {},  Retrieved = {}", rounds,remainingStocks.size(), processedTickers.keySet().size());
             AtomicInteger failureCount = new AtomicInteger();
-            remainingTickers.stream().forEach(item -> {
-                log.info("processing LoadBulkTickers for {}, remaining Count = {}, processed Count = {} ", item.getTicker(),remainingTickers.size(),processedTickers.keySet().size());
+            remainingStocks.parallelStream().forEach(item -> {
+                JobStatus bspUnit = auditService.startJobWithComment(JobName.BSP_TICKER_UNIT, item.getTicker());
                 List<LoadBulkTickers> bulkTickerList = getAllBulkTickerData(item);
                 bulkTickerList.forEach(i -> i.setTicker(item.getTicker()));
-                if (bulkTickerList != null && !bulkTickerList.isEmpty()) {
+                if (!bulkTickerList.isEmpty()) {
                     item.setHistoryLoaded(true);
                     stockService.saveAllLoadBulkTickers(bulkTickerList);
                     stockService.saveStock(item);
                     processedTickers.put(item.getTicker(), bulkTickerList);
+                    auditService.endJobWithSuccessFailureCount(bspUnit,bulkTickerList.size(),0);
                 }else {
                     failureCount.getAndIncrement();
-                    log.info( "DSP tickers Currently Processed count = {}, failureCount = {}", processedTickers.keySet().size(),failureCount);
+                    auditService.endJobWithSuccessFailureCount(bspUnit,0,0);
                 }
             });
-            remainingTickers.removeAll(processedTickers.keySet());
+            List<String> tickerNames0 = processedTickers.keySet().stream().toList();
+            remainingStocks.removeAll(remainingStocks.stream().filter( e -> !tickerNames0.contains(e.getTicker())).toList());
+            log.info( "BSP Loader End: Round = {}, Remaining = {},  Retrieved = {}", rounds,remainingStocks.size(), processedTickers.keySet().size());
             rounds++;
         }
-        audit.setSuccessCount(processedTickers.keySet().size());
-        stockService.endJob(audit);
+
+        auditService.endJobWithSuccessFailureCount(audit,processedTickers.keySet().size(),remainingStocks.size());
     }
 
 

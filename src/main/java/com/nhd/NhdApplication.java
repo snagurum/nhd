@@ -48,13 +48,13 @@ public class NhdApplication {
 //	}
 
 
-	@Bean
-	@Order(1)
-	public CommandLineRunner commandLineRunner(ApplicationContext ctx) {
-		return args -> {
-			tickerRunner.runJob();
-		};
-	}
+//	@Bean
+//	@Order(1)
+//	public CommandLineRunner commandLineRunner(ApplicationContext ctx) {
+//		return args -> {
+//			tickerRunner.runJob();
+//		};
+//	}
 //
 //
 //	@Bean
@@ -66,11 +66,11 @@ public class NhdApplication {
 //	}
 //
 
-	@Bean
-	@Order(3)
-	public CommandLineRunner commandLineRunner1(ApplicationContext ctx) {
-		return args -> {
-			bulkTickerRunner.runJob();
-		};
-	}
+//	@Bean
+//	@Order(3)
+//	public CommandLineRunner commandLineRunner1(ApplicationContext ctx) {
+//		return args -> {
+//			bulkTickerRunner.runJob();
+//		};
+//	}
 }

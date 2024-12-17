@@ -8,6 +8,7 @@ import com.nhd.models.JobStatus;
 import com.nhd.models.LoadBulkTickers;
 import com.nhd.models.LoadDspTickers;
 import com.nhd.models.Stock;
+import com.nhd.service.AuditService;
 import com.nhd.service.StockService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.sql.Date;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 public class JobStatusController {
@@ -30,11 +32,11 @@ public class JobStatusController {
 	TickerRunner tickerRunner;
 
 	@Autowired
-	StockService stockService;
+	AuditService auditService;
 
 	@GetMapping("/tjs")
 	public List<JobStatus> index() {
-		return stockService.getTodaysJobStatus();
+		return auditService.getTodaysJobStatus();
 	}
 
 	@GetMapping("/help")
@@ -71,19 +73,19 @@ public class JobStatusController {
 	}
 
 	@GetMapping("/test/bulk")
-	public List<LoadBulkTickers> bulkTest(@RequestParam String ticker,@RequestParam String dol) {
+	public List<LoadBulkTickers> bulkTest(@RequestParam Optional<String> ticker, @RequestParam Optional<String> dol) {
 		Stock stock = new Stock();
-		if(null == ticker || ticker.isEmpty()){
-			// stock.setTicker("INFY");
-			// stock.setDateOfListing(Date.valueOf("2024-08-08"));
+		if(!ticker.isPresent()){
+			 stock.setTicker("INFY");
+			 stock.setDateOfListing(Date.valueOf("1995-08-08"));
 			// stock.setTicker("ZOMATO");
 			// stock.setDateOfListing(Date.valueOf("2024-01-09"));
-			stock.setTicker("TATATECH");
-			stock.setDateOfListing(Date.valueOf("2023-01-09"));
+//			stock.setTicker("TATATECH");
+//			stock.setDateOfListing(Date.valueOf("2023-01-09"));
 		}
 		else{ 
-			stock.setTicker( ticker);
-			stock.setDateOfListing(Date.valueOf(dol));
+			stock.setTicker( ticker.get());
+			stock.setDateOfListing(Date.valueOf(dol.get()));
 		}
 		return bulkTickerRunner.getAllBulkTickerData(stock);
 	}

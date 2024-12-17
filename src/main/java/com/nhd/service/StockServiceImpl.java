@@ -31,9 +31,6 @@ public class StockServiceImpl implements StockService {
     LoadDspTickersRepository loadDspRepo;
 
     @Autowired
-    JobStatusRepository jobStatusRepo;
-
-    @Autowired
     StockRepository stockRepo;
 
     @Autowired
@@ -70,34 +67,6 @@ public class StockServiceImpl implements StockService {
 
 //-------------------------------- logging
 
-    public JobStatus startJob(JobName jobName ) {
-        return startJobWithComment(jobName,null);
-    }
-
-    public JobStatus startJobWithComment(JobName jobName,String comment){
-        JobStatus job = new JobStatus();
-        job.setType(jobName.getJobType());
-        job.setName(jobName.toString());
-        job.setComments(comment);
-        job.setStartTime(new Timestamp(System.currentTimeMillis()));
-        job.setStatus("Started");
-        return jobStatusRepo.save(job);
-    }
-
-    public void endJob(JobStatus job) {
-        job.setEndTime(new Timestamp(System.currentTimeMillis()));
-        job.setStatus("Completed");
-        job.setDuration( (job.getEndTime().getTime()-job.getStartTime().getTime())/1000);
-        jobStatusRepo.save(job);
-    }
-
-    public List<JobStatus> getTodaysJobStatus(){
-        return jobStatusRepo.getTodaysJobStatus();
-    }
-
-    public List<JobStatus> getTodaysJobStatusByJobName(String jobName) {
-        return jobStatusRepo.getTodaysJobStatusByJobName(jobName);
-    }
 
     public void saveAllLoadBulkTickers(List<LoadBulkTickers> tickers){
         loadBulkTickersRepo.saveAll(tickers);

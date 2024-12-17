@@ -2,6 +2,7 @@ package com.nhd.batch.runner;
 
 
 import com.nhd.models.JobStatus;
+import com.nhd.service.AuditService;
 import com.nhd.util.Constants;
 import com.nhd.models.LoadTickers;
 import com.nhd.service.StockService;
@@ -33,6 +34,9 @@ public class TickerRunner {
     @Autowired
     private StockService stockService ;
 
+    @Autowired
+    private AuditService auditService ;
+
 	public String getTickers() throws IOException {
         return Http.loadPage(Constants.NSE_TICKERS_URL, null).getResponseBody();
 	}
@@ -40,17 +44,17 @@ public class TickerRunner {
     @Scheduled( cron = "#{${loader.ticker.scheduler.cron}}")
     public void runJob(){
         try{
-            List<JobStatus> jobs = stockService.getTodaysJobStatusByJobName(String.valueOf(JobName.TICKER));
+            List<JobStatus> jobs = auditService.getTodaysJobStatusByJobName(String.valueOf(JobName.TICKER));
             if(!jobs.isEmpty()) {
                 log.info("Job {} has already been started ....",jobs.get(0));
                 return;
             }
-            JobStatus audit = stockService.startJob(JobName.TICKER);
+            JobStatus audit = auditService.startJob(JobName.TICKER);
             List<LoadTickers> tickers = this.loadObjectList(getTickers());
             stockService.saveAllLoadTickers(tickers );
             log.info("loaded tickers count = {}", tickers.size());
             audit.setSuccessCount(tickers.size());
-            stockService.endJob(audit);
+            auditService.endJob(audit);
         }catch (Exception e){
             log.error(e.getMessage(),e);
         }
