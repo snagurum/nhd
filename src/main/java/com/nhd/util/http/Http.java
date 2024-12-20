@@ -58,6 +58,7 @@ public class Http {
     public static HttpResponse loadPage(String urlString, CookieHandler cookies, Map<String,String> addtionalHeaders) throws IOException{
         URL url = new URL(urlString);
         HttpURLConnection httpURLConnection = (HttpURLConnection)url.openConnection();
+        httpURLConnection.setConnectTimeout(60000);
         setDefaultHeaders(httpURLConnection);
         setAdditionalHeaders(httpURLConnection, addtionalHeaders);
         handleCookies(cookies, httpURLConnection);

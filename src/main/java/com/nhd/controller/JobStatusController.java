@@ -10,6 +10,8 @@ import com.nhd.models.LoadDspTickers;
 import com.nhd.models.Stock;
 import com.nhd.service.AuditService;
 import com.nhd.service.StockService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -21,6 +23,8 @@ import java.util.Optional;
 
 @RestController
 public class JobStatusController {
+
+	private static final Logger log = LoggerFactory.getLogger(JobStatusController.class);
 
 	@Autowired
 	DspRunner dspTickerRunner;
@@ -43,10 +47,13 @@ public class JobStatusController {
 	public String help(){
 		StringBuilder message = new StringBuilder();
 		message
-				.append("/help             help message" ).append("\n")
-  			   	.append("/tjs              Today's Job Status ").append("\n")
-			   	.append("/runJob/ticker    Run Ticker job").append("\n")
-				.append("/runJob/dspTicker Run DSP Ticker job").append("\n");
+				.append("/help                                 help message" ).append("\n")
+  			   	.append("/tjs                                  Today's Job Status ").append("\n")
+			   	.append("/runJob/ticker                        Run Ticker job").append("\n")
+				.append("/runJob/dspTicker                     Run DSP Ticker job").append("\n")
+				.append("/test/bulk?ticker=INFY&dol=2024-11-18 test BSP Ticker job").append("\n")
+				.append("/test/dsp?ticker=INFY                 test DSP Ticker job").append("\n")
+		;
 		return message.toString();
 	}
 
@@ -66,9 +73,13 @@ public class JobStatusController {
 	}
 
 	@GetMapping("/test/dsp")
-	public LoadDspTickers dspTest() {
+	public LoadDspTickers dspTest(@RequestParam Optional<String> ticker) {
 		Stock stock = new Stock();
-		stock.setTicker("INFY");
+		if(!ticker.isPresent()) {
+			stock.setTicker("INFY");
+		}else{
+			stock.setTicker(ticker.get());
+		}
 		return dspTickerRunner.getDspTickerInfo(stock);
 	}
 
@@ -83,9 +94,10 @@ public class JobStatusController {
 //			stock.setTicker("TATATECH");
 //			stock.setDateOfListing(Date.valueOf("2023-01-09"));
 		}
-		else{ 
+		else{
 			stock.setTicker( ticker.get());
 			stock.setDateOfListing(Date.valueOf(dol.get()));
+			log.info("Ticker = {}, Dol = {}",stock.getTicker(),stock.getDateOfListing());
 		}
 		return bulkTickerRunner.getAllBulkTickerData(stock);
 	}
