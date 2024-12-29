@@ -1,20 +1,18 @@
 package com.nhd.batch.runner;
 
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.Date;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
-import java.net.URLEncoder;
 
-import com.nhd.service.AuditService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +26,7 @@ import com.nhd.models.HttpResponse;
 import com.nhd.models.JobStatus;
 import com.nhd.models.LoadBulkTickers;
 import com.nhd.models.Stock;
+import com.nhd.service.AuditService;
 import com.nhd.service.StockService;
 import com.nhd.util.Constants;
 import com.nhd.util.JobName;
@@ -55,7 +54,7 @@ public class BulkRunner {
     private static String tickerHistoricalPriceDetailsUrl = Constants.NSE_HOME_URL+"/api/historical/cm/equity?symbol=__ticker__&series=[%22__series__%22]&from=__startDate__&to=__endDate__&csv=true";
 
     private static Integer totalRounds = 5;
-    private static Integer STOCKS_PER_RUN = 1000;
+    private static Integer STOCKS_PER_RUN = 50;
 
     static{
         additionalHeaders.put("Referer",homePageUrl+"/");
@@ -132,7 +131,7 @@ public class BulkRunner {
             if("Error".equals(data.get()))
                 return null;
             else return loadBulkTickersList;
-        }catch(Exception e){
+        }catch(IOException e){
             log.error("Exception occured for {} ", ticker.getTicker(),e);
             return null;
         }
@@ -142,7 +141,6 @@ public class BulkRunner {
 
     public List<String> getDates(Stock ticker){
         List<String> availableDates = new ArrayList<>();
-        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
         Calendar calendar = new GregorianCalendar();
         calendar.setTime(ticker.getDateOfListing());
         int startYear = calendar.get(Calendar.YEAR);
@@ -170,46 +168,48 @@ public class BulkRunner {
     @Scheduled(cron="#{${loader.bulk_ticker.scheduler.cron}}")
     public void runJob(){
 
-        List<Stock> remainingStocks = stockService.noHistoryStocks();
+        List<Stock> remainingStocks = stockService.noHistoryStocksWithLimit(STOCKS_PER_RUN);
         if (remainingStocks.isEmpty()){
             log.info("BSP: No tickers available stopping...");
             return;
         }
 
-        remainingStocks = remainingStocks.size()>STOCKS_PER_RUN?remainingStocks.subList(0,STOCKS_PER_RUN):remainingStocks.subList(0,remainingStocks.size());
-
-        Map<String, List<LoadBulkTickers>> processedTickers = new HashMap<>();
+        List<String> processedTickers = new ArrayList<>();
 
         int rounds = 0;
         boolean allFailed = false;
         JobStatus audit = auditService.startJob(JobName.BSP_TICKER);
 
         while( rounds < totalRounds && !allFailed && !remainingStocks.isEmpty()) {
-            log.info( "BSP Loader  Start: Round-{}, Remaining = {},  Retrieved = {}", rounds,remainingStocks.size(), processedTickers.keySet().size());
+            log.info( "BSP Loader  Start: Round-{}, Remaining = {},  Retrieved = {}", rounds,remainingStocks.size(), processedTickers.size());
             AtomicInteger failureCount = new AtomicInteger();
             remainingStocks.parallelStream().forEach(item -> {
                 JobStatus bspUnit = auditService.startJobWithComment(JobName.BSP_TICKER_UNIT, item.getTicker());
                 List<LoadBulkTickers> bulkTickerList = getAllBulkTickerData(item);
-                bulkTickerList.forEach(i -> i.setTicker(item.getTicker()));
-                if (!bulkTickerList.isEmpty()) {
-                    item.setHistoryLoaded(true);
-                    stockService.saveAllLoadBulkTickers(bulkTickerList);
-                    stockService.saveStock(item);
-                    processedTickers.put(item.getTicker(), bulkTickerList);
-                    auditService.endJobWithSuccessFailureCount(bspUnit,bulkTickerList.size(),0);
-                }else {
+                if(bulkTickerList == null){
                     failureCount.getAndIncrement();
-                    auditService.endJobWithSuccessFailureCount(bspUnit,0,0);
+                    auditService.failJob(bspUnit);            
+                    log.info("Error occured for {}, no data retrieved bulkTickerList is empty", item.getTicker());
+                }else{
+                    bulkTickerList.forEach(i -> i.setTicker(item.getTicker()));
+                    if (!bulkTickerList.isEmpty()) {
+                        item.setHistoryLoaded(true);
+                        stockService.saveAllLoadBulkTickers(bulkTickerList);
+                        stockService.saveStock(item);
+                        processedTickers.add(item.getTicker());
+                        auditService.endJobWithSuccessFailureCount(bspUnit,bulkTickerList.size(),0);
+                    }else {
+                        failureCount.getAndIncrement();
+                        auditService.endJobWithSuccessFailureCount(bspUnit,0,0);
+                    }
                 }
             });
-            List<String> tickerNames0 = processedTickers.keySet().stream().toList();
-            remainingStocks.removeIf(stock -> tickerNames0.contains(stock.getTicker()));
-//            remainingStocks.removeAll(remainingStocks.stream().anyMatch( e -> !tickerNames0.contains(e.getTicker())));
-            log.info( "BSP Loader End: Round = {}, Remaining = {},  Retrieved = {}", rounds,remainingStocks.size(), processedTickers.keySet().size());
+            remainingStocks.removeIf(stock -> processedTickers.contains(stock.getTicker()));
+            log.info( "BSP Loader End: Round = {}, Remaining = {},  Retrieved = {}", rounds,remainingStocks.size(), processedTickers.size());
             rounds++;
         }
 
-        auditService.endJobWithSuccessFailureCount(audit,processedTickers.keySet().size(),remainingStocks.size());
+        auditService.endJobWithSuccessFailureCount(audit,processedTickers.size(),remainingStocks.size());
     }
 
 

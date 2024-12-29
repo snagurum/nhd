@@ -1,9 +1,5 @@
 package com.nhd;
 
-import java.util.Arrays;
-
-import com.nhd.batch.runner.BulkRunner;
-import com.nhd.batch.runner.DspRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,12 +9,11 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.annotation.Order;
-import org.springframework.jdbc.core.JdbcTemplate;
-
-import com.nhd.batch.runner.TickerRunner;
-import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+
+import com.nhd.batch.runner.BulkRunner;
+import com.nhd.batch.runner.DspRunner;
+import com.nhd.batch.runner.TickerRunner;
 
 @EnableScheduling
 @SpringBootApplication
@@ -48,15 +43,15 @@ public class NhdApplication {
 //	}
 
 
-//	@Bean
-//	@Order(1)
-//	public CommandLineRunner commandLineRunner(ApplicationContext ctx) {
-//		return args -> {
-//			tickerRunner.runJob();
-//		};
-//	}
-//
-//
+	@Bean
+	@Order(1)
+	public CommandLineRunner commandLineRunner(ApplicationContext ctx) {
+		return args -> {
+			tickerRunner.runJob();
+		};
+	}
+
+
 //	@Bean
 //	@Order(2)
 //	public CommandLineRunner commandLineRunner1(ApplicationContext ctx) {

@@ -1,13 +1,14 @@
 package com.nhd.service;
 
-import com.nhd.models.JobStatus;
-import com.nhd.service.repo.JobStatusRepository;
-import com.nhd.util.JobName;
+import java.sql.Timestamp;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.sql.Timestamp;
-import java.util.List;
+import com.nhd.models.JobStatus;
+import com.nhd.service.repo.JobStatusRepository;
+import com.nhd.util.JobName;
 
 
 @Service
@@ -50,6 +51,12 @@ public class AuditServiceImpl implements AuditService{
         job.setSuccessCount(success);
         job.setFailureCount(failure);
         this.endJob(job);
+    }
+
+    public void failJobWithSuccessFailureCount(JobStatus job,int success, int failure) {
+        job.setSuccessCount(success);
+        job.setFailureCount(failure);
+        this.failJob(job);
     }
 
     public List<JobStatus> getTodaysJobStatus(){

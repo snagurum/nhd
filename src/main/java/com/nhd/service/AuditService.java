@@ -1,9 +1,9 @@
 package com.nhd.service;
 
+import java.util.List;
+
 import com.nhd.models.JobStatus;
 import com.nhd.util.JobName;
-
-import java.util.List;
 
 public interface AuditService {
 
@@ -17,6 +17,8 @@ public interface AuditService {
     void endJob(JobStatus job);
 
     void endJobWithSuccessFailureCount(JobStatus job,int success, int failure);
+    
+    void failJobWithSuccessFailureCount(JobStatus job,int success, int failure);
 
     List<JobStatus> getTodaysJobStatus();
 
