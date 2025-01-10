@@ -1,29 +1,26 @@
 package com.nhd.batch.runner;
 
 
-import com.nhd.models.JobStatus;
-import com.nhd.service.AuditService;
-import com.nhd.util.Constants;
-import com.nhd.models.LoadTickers;
-import com.nhd.service.StockService;
-
-import com.nhd.util.JobName;
-import com.nhd.util.http.Http;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.fasterxml.jackson.databind.MappingIterator;
-import com.fasterxml.jackson.dataformat.csv.CsvMapper;
-import com.fasterxml.jackson.dataformat.csv.CsvSchema;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Collections;
+import com.fasterxml.jackson.databind.MappingIterator;
+import com.fasterxml.jackson.dataformat.csv.CsvMapper;
+import com.fasterxml.jackson.dataformat.csv.CsvSchema;
+import com.nhd.models.JobStatus;
+import com.nhd.models.LoadTickers;
+import com.nhd.service.AuditService;
+import com.nhd.service.StockService;
+import com.nhd.util.Constants;
+import com.nhd.util.JobName;
+import com.nhd.util.http.Http;
 
 
 @Component
@@ -37,6 +34,9 @@ public class TickerRunner {
     @Autowired
     private AuditService auditService ;
 
+    private Boolean jobCompleted4Today = false;
+
+
 	public String getTickers() throws IOException {
         return Http.loadPage(Constants.NSE_TICKERS_URL, null).getResponseBody();
 	}
@@ -45,16 +45,19 @@ public class TickerRunner {
     public void runJob(){
         try{
             List<JobStatus> jobs = auditService.getTodaysJobStatusByJobName(String.valueOf(JobName.TICKER));
-            if(!jobs.isEmpty()) {
-                log.info("Job {} has already been started ....",jobs.get(0));
+            if(jobs.isEmpty()) {
+               jobCompleted4Today = false; 
+            }else {
                 return;
             }
             JobStatus audit = auditService.startJob(JobName.TICKER);
+            log.info("Job {} has already been started ....",audit);
             List<LoadTickers> tickers = this.loadObjectList(getTickers());
             stockService.saveAllLoadTickers(tickers );
             log.info("loaded tickers count = {}", tickers.size());
             audit.setSuccessCount(tickers.size());
             auditService.endJob(audit);
+            jobCompleted4Today = true;
         }catch (Exception e){
             log.error(e.getMessage(),e);
         }

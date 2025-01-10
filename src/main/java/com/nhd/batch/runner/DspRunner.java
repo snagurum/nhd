@@ -1,36 +1,34 @@
 package com.nhd.batch.runner;
 
-import com.nhd.models.JobStatus;
-import com.nhd.models.LoadDspTickers;
-import com.nhd.models.Stock;
-import com.nhd.service.AuditService;
-import com.nhd.util.Constants;
-import com.nhd.models.HttpResponse;
-import com.nhd.service.StockService;
-
-import com.nhd.util.JobName;
-import com.nhd.util.http.CookieHandler;
-import com.nhd.util.http.Http;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
-
-
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+
+import com.nhd.models.HttpResponse;
+import com.nhd.models.JobStatus;
+import com.nhd.models.LoadDspTickers;
+import com.nhd.models.Stock;
+import com.nhd.service.AuditService;
+import com.nhd.service.StockService;
+import com.nhd.util.Constants;
+import com.nhd.util.JobName;
+import com.nhd.util.http.CookieHandler;
+import com.nhd.util.http.Http;
 
 @Component
 public class DspRunner {
 
     private static final Logger log = LoggerFactory.getLogger(DspRunner.class);
+
+    private Boolean jobCompleted4Today = false;
 
     @Autowired
     private StockService stockService ;
@@ -88,12 +86,14 @@ public class DspRunner {
     @Scheduled(cron="#{${loader.dsp_ticker.scheduler.cron}}")
     public void runJob(){
         List<JobStatus> jobs = auditService.getTodaysJobStatusByJobName(String.valueOf(JobName.DSP_TICKER));
-        if(!jobs.isEmpty()) {
-            log.info("Job {} has already been started ....",jobs.get(0));
+        if(jobs.isEmpty()) {
+            jobCompleted4Today = false; 
+        }else {
             return;
         }
-
         JobStatus audit = auditService.startJob(JobName.DSP_TICKER);
+            log.info("Job {} has already been started ....",audit);
+        
         List<Stock> remainingStocks = stockService.getActiveTickers();
         Map<String, LoadDspTickers> processedTickers = new HashMap<>();
 
@@ -122,6 +122,7 @@ public class DspRunner {
 
         stockService.saveAllLoadDspTickers(processedTickers.values().stream().toList());
         auditService.endJobWithSuccessFailureCount(audit,processedTickers.keySet().size(),remainingStocks.size());
+        jobCompleted4Today = true;
 
     }
 
