@@ -8,5 +8,6 @@ RUN mv /app/target/nhd*.jar /app/target/nhd.jar
 # Second stage: create a slim image
 FROM openjdk:17
 COPY --from=build /app/target/nhd.jar /nhd.jar
+ENV TZ="Asia/Kolkata"
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "/nhd.jar"]
